@@ -1,4 +1,4 @@
-# structure_viewer.py
+## structure_viewer.py
 # Lightweight protein viewer utilities for py3Dmol
 # - Single model: show_pdb(...)
 # - Multi model:  show_pdbs(..., mode="overlay" | "grid")
@@ -32,17 +32,18 @@ END
 # ---------------- Public API ---------------- #
 
 def show_pdb(
-    pdb_text: str,
-    style: str = "stick",                     # "cartoon", "stick", "line", "surface", "cartoon+sticks"
-    color_scheme: str = "chain",              # "chain","spectrum","ssPyMol","resi","element","#rrggbb"
-    color: Optional[str] = None,              # backward-compatible alias for color_scheme
+    pdb_text: str,                             # <-- non-default FIRST (fixes the SyntaxError)
+    style: str = "stick",                      # "cartoon", "stick", "line", "surface", "cartoon+sticks"
+    color_scheme: str = "chain",               # "chain","spectrum","ssPyMol","resi","element","#rrggbb"
+    color: Optional[str] = None,               # backward-compatible alias for color_scheme
     dark_bg: bool = True,
     show_ligands: bool = True,
     stick_radius: float = 0.25,
     width: int = 800,
     height: int = 600,
-    chains: Optional[Sequence[str]] = None,   # e.g., ["A","B"]
-    highlight: Optional[Sequence[Tuple[str, Union[int, Tuple[int,int]]]]] = None,  # [("A",10), ("B",(15,25))]
+    chains: Optional[Sequence[str]] = None,    # e.g., ["A","B"]
+    highlight: Optional[Sequence[Tuple[str, Union[int, Tuple[int,int]]]]] = None,
+    surface_ms_opacity: float | None = None,   # optional glossy molecular surface overlay
 ):
     """
     Render a single structure and return a py3Dmol view.
@@ -63,27 +64,124 @@ def show_pdb(
     if highlight:
         _apply_highlights(v, highlight)
 
+    # Soft molecular surface overlay for realism
+    if surface_ms_opacity is not None and surface_ms_opacity > 0:
+        try:
+            v.addSurface(py3Dmol.MS, {"opacity": float(surface_ms_opacity)}, {})
+        except Exception:
+            pass
+
     v.zoomTo()
     return v
 
 
-# --- replace this function in structure_viewer.py ---
+
+# --- Residue painters (hydropathy / charge) ---
+
+_THREE_TO_ONE = {
+    "ALA":"A","ARG":"R","ASN":"N","ASP":"D","CYS":"C",
+    "GLN":"Q","GLU":"E","GLY":"G","HIS":"H","ILE":"I",
+    "LEU":"L","LYS":"K","MET":"M","PHE":"F","PRO":"P",
+    "SER":"S","THR":"T","TRP":"W","TYR":"Y","VAL":"V",
+}
+
+# Kyte–Doolittle hydropathy
+_KD = {"I":4.5,"V":4.2,"L":3.8,"F":2.8,"C":2.5,"M":1.9,"A":1.8,
+       "G":-0.4,"T":-0.7,"S":-0.8,"W":-0.9,"Y":-1.3,"P":-1.6,
+       "H":-3.2,"E":-3.5,"Q":-3.5,"D":-3.5,"N":-3.5,"K":-3.9,"R":-4.5}
+
+def _parse_residue_table(pdb_text: str):
+    """
+    Return list of residues: [(chain, resi, aa1)], taking CA records.
+    """
+    out = []
+    seen = set()
+    for line in pdb_text.splitlines():
+        if not line.startswith("ATOM"):
+            continue
+        name = line[12:16].strip()
+        if name != "CA":
+            continue
+        res3 = line[17:20].strip().upper()
+        aa = _THREE_TO_ONE.get(res3, "X")
+        chain = line[21].strip() or "A"
+        try:
+            resi = int(line[22:26])
+        except Exception:
+            continue
+        key = (chain, resi)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append((chain, resi, aa))
+    return out
+
+def apply_residue_coloring(view, pdb_text: str, scheme: str = "hydropathy", stick_radius: float = 0.25):
+    """
+    Re-color the existing model by residue categories.
+    scheme: 'hydropathy' or 'charge'
+    """
+    residues = _parse_residue_table(pdb_text)
+    if not residues:
+        return view
+
+    if scheme.lower().startswith("hydro"):
+        # 5-bin palette (blue → red)
+        bins = [(-10, -2.0), (-2.0, -0.5), (-0.5, 0.5), (0.5, 2.0), (2.0, 10)]
+        colors = ["#2a6fdb", "#63a3ff", "#d9d9d9", "#ffb366", "#e6452e"]
+        # group resi by chain per bin
+        groups = [dict() for _ in bins]
+        for ch, ri, aa in residues:
+            v = _KD.get(aa, 0.0)
+            for k, (lo, hi) in enumerate(bins):
+                if lo <= v <= hi:
+                    groups[k].setdefault(ch, []).append(ri)
+                    break
+        for k, g in enumerate(groups):
+            if not g:
+                continue
+            col = colors[k]
+            for ch, res_list in g.items():
+                sel = {"chain": ch, "resi": sorted(res_list)}
+                view.addStyle(sel, {"cartoon": {"color": col}})
+                view.addStyle(sel, {"stick": {"color": col, "radius": float(stick_radius)}})
+
+    else:  # charge
+        pos = set("KRH")   # treat H as basic-ish
+        neg = set("DE")
+        c_groups = {"pos": ("#5bc0eb", {}), "neg": ("#ff5d73", {}), "neu": ("#c7c7c7", {})}
+        for ch, ri, aa in residues:
+            if aa in pos:
+                key = "pos"
+            elif aa in neg:
+                key = "neg"
+            else:
+                key = "neu"
+            c_groups[key][1].setdefault(ch, []).append(ri)
+        for key, (col, per_chain) in c_groups.items():
+            for ch, res_list in per_chain.items():
+                sel = {"chain": ch, "resi": sorted(res_list)}
+                view.addStyle(sel, {"cartoon": {"color": col}})
+                view.addStyle(sel, {"stick": {"color": col, "radius": float(stick_radius)}})
+    return view
+
 def show_pdbs(
-    pdb_texts: list[str],
-    mode: str = "overlay",                    # "overlay" | "grid"
+    pdb_texts: list[str],                      # <-- non-default FIRST
+    mode: str = "overlay",                     # "overlay" | "grid"
     style: str = "stick",
     color_scheme: str = "chain",
-    color: str | None = None,                 # alias for color_scheme
+    color: str | None = None,                  # alias for color_scheme
     dark_bg: bool = True,
     show_ligands: bool = True,
     stick_radius: float = 0.25,
-    chains: Optional[Sequence[str]] = None,   # limit display to these chains
-    align: str = "none",                      # "none" | "ca_to_first" (if Bio.PDB installed)
+    chains: Optional[Sequence[str]] = None,    # limit display to these chains
+    align: str = "none",                       # "none" | "ca_to_first" (if Bio.PDB installed)
     highlight_sets: Optional[List[Sequence[Tuple[str, Union[int, Tuple[int,int]]]]]] = None,
     width_overlay: int = 950,
     height_overlay: int = 650,
     cell_width: int = 320,
     cell_height: int = 300,
+    surface_ms_opacity: float | None = None,   # optional glossy molecular surface overlay
 ):
     """
     Overlay: returns (single_view, False)
@@ -106,6 +204,11 @@ def show_pdbs(
                          style=style, color_scheme=color_scheme, stick_radius=stick_radius)
             if highlight_sets and len(highlight_sets) >= i and highlight_sets[i-1]:
                 _apply_highlights(v, highlight_sets[i-1], model_index=i)
+            if surface_ms_opacity is not None and surface_ms_opacity > 0:
+                try:
+                    v.addSurface(py3Dmol.MS, {"opacity": float(surface_ms_opacity)}, {"model": i})
+                except Exception:
+                    pass
         if show_ligands:
             _highlight_ligands(v)
         v.setBackgroundColor("0x0d1117" if dark_bg else "0xffffff")
@@ -115,39 +218,36 @@ def show_pdbs(
     # -------- Grid mode without createViewerGrid --------
     views: List[py3Dmol.view] = []
     for idx, pdb_txt in enumerate(pdb_texts):
-        v = py3Dmol.view(width=cell_width, height=cell_height)
-        v.addModel(pdb_txt, "pdb")
-        _apply_style(v, selector=_sel_chains(chains), style=style,
+        viewer = py3Dmol.view(width=cell_width, height=cell_height)
+        viewer.addModel(pdb_txt, "pdb")
+        _apply_style(viewer, selector=_sel_chains(chains), style=style,
                      color_scheme=color_scheme, stick_radius=stick_radius)
         if show_ligands:
-            _highlight_ligands(v)
+            _highlight_ligands(viewer)
         if highlight_sets and len(highlight_sets) > idx and highlight_sets[idx]:
-            _apply_highlights(v, highlight_sets[idx])
-        v.setBackgroundColor("0x0d1117" if dark_bg else "0xffffff")
-        v.zoomTo()
-        # optional label:
-        # v.addLabel(f"Model {idx+1}", {"fontSize": 12})
-        views.append(v)
+            _apply_highlights(viewer, highlight_sets[idx])
+        if surface_ms_opacity is not None and surface_ms_opacity > 0:
+            try:
+                viewer.addSurface(py3Dmol.MS, {"opacity": float(surface_ms_opacity)}, {})
+            except Exception:
+                pass
+        viewer.setBackgroundColor("0x0d1117" if dark_bg else "0xffffff")
+        viewer.zoomTo()
+        views.append(viewer)
     return views, True
 
 
-# --- add this helper next to to_html(...) ---
 def to_html(view_or_grid, height: int | None = None, scrolling: bool = False) -> str:
     """
     Return embeddable HTML for a single py3Dmol view.
-    If you need to handle multiple views (grid), use to_html_many(...) instead.
+    If you need to handle multiple views (grid), iterate and call to_html(v) per view.
     """
-    # Single viewer (py3Dmol.view) should have _make_html()
     if hasattr(view_or_grid, "_make_html"):
         return view_or_grid._make_html()
-
-    # If a list/tuple was passed here by mistake, be explicit
     raise TypeError(
         "to_html() expects a single py3Dmol view. "
-        "For multiple views, iterate and call to_html(v) per view, "
-        "or use to_html_many([...])."
+        "For multiple views, iterate and call to_html(v) per view."
     )
-
 
 # ---------------- Internals ---------------- #
 
@@ -158,7 +258,6 @@ def _sel_chains(chains: Optional[Sequence[str]]):
     chains = [c.strip() for c in chains if str(c).strip()]
     if not chains:
         return {}
-    # 3Dmol selector supports {"or":[{"chain":"A"},{"chain":"B"}]}
     return {"or": [{"chain": ch} for ch in chains]}
 
 def _merge_sel(a: dict, b: dict) -> dict:
@@ -180,9 +279,7 @@ def _apply_style(view, selector, style: str, color_scheme: str, stick_radius: fl
     def _is_hex(s: str) -> bool:
         return isinstance(s, str) and (s.startswith("#") or s.startswith("0x"))
 
-    # For stick/line, 3Dmol commonly uses "colorscheme"
     stick_line_color = {"color": color_scheme} if _is_hex(color_scheme) else {"colorscheme": color_scheme}
-    # For cartoon, "color" can be a scheme like "spectrum" too
     cartoon_color = {"color": color_scheme}
 
     sty = (style or "").lower().strip()
@@ -198,7 +295,6 @@ def _apply_style(view, selector, style: str, color_scheme: str, stick_radius: fl
         view.setStyle(selector, {"cartoon": {"opacity": 0.25}})
         view.addSurface(py3Dmol.VDW, {"opacity": 0.85}, selector)
     elif sty == "cartoon+sticks":
-        # Cartoon backbone + sticks for sidechains only
         view.setStyle(selector, {"cartoon": dict(cartoon_color)})
         backbone = {"or": [{"atom": "N"}, {"atom": "CA"}, {"atom": "C"}, {"atom": "O"}]}
         sidechain_sel = {"and": [selector, {"not": backbone}]}
@@ -206,21 +302,17 @@ def _apply_style(view, selector, style: str, color_scheme: str, stick_radius: fl
         payload["stick"].update(stick_line_color)
         view.setStyle(sidechain_sel, payload)
     else:
-        # Fallback to lines
         view.setStyle(selector, {"line": dict(stick_line_color)})
 
 def _highlight_ligands(view):
     """
     Show non-protein HET groups as sticks and hide waters.
     """
-    # Hide waters
     view.addStyle({"hetflag": True, "resn": ["HOH", "WAT"]}, {"hidden": True})
-    # Show other HETs
     view.setStyle(
         {"hetflag": True, "invert": True, "resn": ["HOH", "WAT"]},
         {"stick": {"radius": 0.25}}
     )
-    # Optional soft surface on ligands
     view.addSurface(
         py3Dmol.VDW, {"opacity": 0.3},
         {"hetflag": True, "invert": True, "resn": ["HOH", "WAT"]}
@@ -265,12 +357,10 @@ def _superpose_pdb_texts(pdb_texts: List[str], chains: Optional[Sequence[str]] =
         mob_cas = _get_ca_atoms(mob_struct, chains)
         n = min(len(ref_cas), len(mob_cas))
         if n < 8:
-            # Not enough anchors; keep original
             out_texts.append(pdb_texts[i])
             continue
         sup = Superimposer()
         sup.set_atoms(ref_cas[:n], mob_cas[:n])
-        # apply transform to all atoms of mobile structure
         sup.apply(mob_struct.get_atoms())
         buf = io.StringIO()
         io_obj.set_structure(mob_struct)
@@ -291,10 +381,3 @@ def _get_ca_atoms(struct, chains: Optional[Sequence[str]] = None):
                 cas.append(res["CA"])
     return cas
 
-# ---------------- Quick demo (optional) ---------------- #
-if __name__ == "__main__":
-    v = show_pdb(PDB_1CRN, style="cartoon+sticks", color_scheme="chain")
-    try:
-        v.show()
-    except Exception:
-        print(to_html(v)[:200] + " ...")
