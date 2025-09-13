@@ -1,0 +1,1 @@
+Currently, I develop Helix.app with the intention to publish it around the beginning of next year. It's only purpose will be to serve as a handy tool for research, as well as educational content for those interested in CRISPR science
