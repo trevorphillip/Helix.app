@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "helix-app"
+version = "0.3.0"
+description = "Helix Suite: CRISPR Sandbox + Med-Prep"
+# If you have a README.md, keep the next line; otherwise delete it.
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "biopython>=1.84",
+  "pyyaml>=6.0.1",
+]
+
+[project.optional-dependencies]
+desktop = ["streamlit>=1.37", "kivy>=2.2"]
+mobile  = ["kivy>=2.2"]
+
+# 🔹 Use ONE discovery method only. We use automatic find() with include patterns.
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+  "helix_core",
+  "helix_desktop",
+  "mobile_app",
+  "helix_platform",
+  "helix_apps",
+  "helix_apps.*",
+  "codon",
+]

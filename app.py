@@ -20,7 +20,7 @@ st.set_page_config(layout="wide", page_title="Helix — Genetics Suite", page_ic
 # ───────────────────────────────────────────────────────────────────────────────
 # Theming (no side-effects on widget keys)
 # ───────────────────────────────────────────────────────────────────────────────
-from helix_core.ui_plus import inject_visual_theme, set_plotly_template
+from helix_desktop.ui_plus import inject_visual_theme, set_plotly_template
 inject_visual_theme(neon=True)
 set_plotly_template("neon")
 
@@ -28,7 +28,8 @@ set_plotly_template("neon")
 # Auth + DB (safe if simple; no conflicting keys)
 # ───────────────────────────────────────────────────────────────────────────────
 from helix_core.auth import login
-from helix_core.db import init_db, get_session
+from helix_core.db import init_db
+
 init_db()
 authed, username = login()
 if not authed:
@@ -46,7 +47,12 @@ from helix_core.crisprutils import (
     find_orfs, find_purine_runs,
 )
 import helix_core.visuals as V
-
+def render_crispr_sandbox(*, set_config: bool = True) -> None:
+    # call this only when running app.py directly
+    if set_config:
+        # keep your existing page_config here if you had one
+        # st.set_page_config(page_title="Helix – CRISPR Sandbox", layout="wide")
+        pass
 # Fallbacks for visuals if functions are missing
 def _fallback_fig(title="Figure"):
     fig = go.Figure()
@@ -82,7 +88,7 @@ from helix_core.codon import codon_usage as codon_usage_count, optimize_coding_s
 from helix_core.msa_utils import parse_fasta_multi, progressive_align, consensus_from_alignment
 from helix_core.primer import design_primers, primers_to_fasta
 from helix_core.structure_viewer import PDB_1CRN, show_pdb, show_pdbs, to_html, apply_residue_coloring
-from helix_core.ui import inject_base_css, hero_header, sticky_toolbar, stat_row, inject_neon_theme, command_palette, handle_command
+from helix_desktop.ui import inject_base_css, hero_header, sticky_toolbar, stat_row, inject_neon_theme, command_palette, handle_command
 from helix_core.peptidebuilder import build_peptide_pdb, build_peptide_pdb_segmented
 from helix_core.editor import apply_snp, apply_insertion, apply_deletion, apply_cut_and_ko
 from helix_core.ai_stub import ask_ai, format_context
@@ -1461,3 +1467,5 @@ with tabAI:
             answer = ask_ai(ask or "Explain this window at a high level.", context_block)
         st.markdown("### Answer")
         st.write(answer)
+if __name__ == "__main__":
+    render_crispr_sandbox(set_config=True)
