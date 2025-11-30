@@ -17,6 +17,44 @@ import plotly.graph_objects as go
 # ───────────────────────────────────────────────────────────────────────────────
 st.set_page_config(layout="wide", page_title="Helix — Genetics Suite", page_icon="🧬")
 
+
+# --- Mode routing (query param) ---
+# URL patterns:
+#   /?mode=sandbox   -> CRISPR Sandbox (default)
+#   /?mode=medprep   -> Med-Prep mode
+_q = st.query_params
+mode = (_q.get("mode", "sandbox") or "sandbox").lower()
+if mode not in {"sandbox", "medprep"}:
+    mode = "sandbox"
+
+# Optional: in-app toggle (keeps URL in sync)
+choice = st.radio("Mode", ["Sandbox", "Med-Prep"], horizontal=True, key="app_mode",
+                  index=(0 if mode=="sandbox" else 1))
+if choice == "Sandbox" and mode != "sandbox":
+    st.query_params["mode"] = "sandbox"
+    st.rerun()
+elif choice == "Med-Prep" and mode != "medprep":
+    st.query_params["mode"] = "medprep"
+    st.rerun()
+
+def render_sandbox():
+    # ✅ move your existing content below this line into this function
+    # (Everything you pasted — tabs, plots, etc. — unchanged.)
+    pass
+
+def render_medprep():
+    # 🔸 You can start simple and grow it later
+    st.title("Med-Prep")
+    st.caption("Boards-style study tools, question banks, spaced repetition, etc.")
+    st.info("Plug your Med-Prep UI here. The wrapper can route to /?mode=medprep to show this.")
+    # Example: reuse your spaced-repetition DB/progress here if you want
+
+# At the end of your top-level script:
+if mode == "medprep":
+    render_medprep()
+else:
+    render_sandbox()
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Theming (no side-effects on widget keys)
 # ───────────────────────────────────────────────────────────────────────────────
@@ -93,7 +131,7 @@ from helix_core.peptidebuilder import build_peptide_pdb, build_peptide_pdb_segme
 from helix_core.editor import apply_snp, apply_insertion, apply_deletion, apply_cut_and_ko
 from helix_core.ai_stub import ask_ai, format_context
 from helix_core.offtarget import KmerIndex, find_offtargets
-from helix_core import sonify
+
 from helix_core.motifs import scan_promoters, scan_restriction_sites, within_window
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
 
