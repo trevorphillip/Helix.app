@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($pkg = Get-Content \"C:\\\\Users\\\\david\\\\PycharmProjects\\\\Helix.app\\\\frontend\\\\node_modules\\\\tailwindcss\\\\package.json\" | ConvertFrom-Json; $pkg.exports.PSObject.Properties.Name | Select-Object -First 20)",
+      "PowerShell(Get-Process *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\david\\\\PycharmProjects\\\\Helix.app\" -Directory | ForEach-Object { $_.Name } | Sort-Object)",
+      "PowerShell(New-Item *)",
+      "PowerShell(Move-Item *)",
+      "PowerShell(head *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\david\\\\PycharmProjects\\\\Helix.app\\\\frontend\" -Recurse | Where-Object { $_.Extension -in '.jsx', '.js', '.json', '.tsx', '.ts' -and $_.FullName -notmatch 'node_modules' } | Select-Object FullName)"
+    ]
+  }
+}

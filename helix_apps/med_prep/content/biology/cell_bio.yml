@@ -1,0 +1,27 @@
+title: Cell Biology 101
+units:
+  - id: cell-structure
+    title: Cell Structure
+    lessons:
+      - id: membranes
+        type: mcq
+        prompt: Which component primarily forms the cell membrane?
+        choices: ["Phospholipids", "Cellulose", "Chitin", "Peptidoglycan"]
+        answer: 0
+        explain: Phospholipid bilayers form membranes; proteins & cholesterol modulate properties.
+      - id: organelles-1
+        type: match
+        prompt: Match organelle → function
+        pairs:
+          - ["Mitochondrion","ATP production"]
+          - ["Ribosome","Protein synthesis"]
+          - ["Golgi","Protein sorting"]
+  - id: cell-cycle
+    title: Cell Cycle
+    lessons:
+      - id: checkpoints
+        type: mcq
+        prompt: G1 checkpoint checks primarily for…
+        choices: ["DNA damage","Spindle attachment","Okazaki fragments","Apoptosis"]
+        answer: 0
+        explain: G1/S checkpoint ensures DNA integrity before replication.

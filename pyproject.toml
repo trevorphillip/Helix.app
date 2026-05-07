@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "helix-app"
+version = "0.3.0"
+description = "Helix Suite: CRISPR Sandbox + Med-Prep"
+# If you have a README.md, keep the next line; otherwise delete it.
+readme = "README.md"
+requires-python = ">=3.10"npm install -g @anthropic-ai/claude-code
+dependencies = [
+  "biopython>=1.84",
+  "fastapi>=0.115",
+  "numpy>=1.26",
+  "pandas>=2.2",
+  "plotly>=5.24",
+  "pydantic>=2.9",
+  "pyyaml>=6.0.1",
+  "requests>=2.32",
+  "streamlit>=1.37",
+  "uvicorn>=0.30",
+]
+
+[project.scripts]
+helix-web = "helix_desktop.launcher:main"
+helix-pc = "helix_desktop.desktop_launcher:main"
+helix-api = "helix_api.cli:main"
+
+[project.optional-dependencies]
+desktop = ["kivy>=2.2", "pywebview>=5.1"]
+mobile  = ["kivy>=2.2"]
+
+# 🔹 Use ONE discovery method only. We use automatic find() with include patterns.
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+  "helix_core",
+  "helix_core.*",
+  "helix_desktop",
+  "helix_desktop.*",
+  "mobile_app",
+  "mobile_app.*",
+  "helix_api",
+  "helix_api.*",
+  "helix_platform",
+  "helix_platform.*",
+  "helix_apps",
+  "helix_apps.*",
+]

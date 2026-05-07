@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+*.pkl
+
+# Environment
+.env
+_env
+
+# Database
+helix.db
+helix.db.bak
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# PyInstaller
+*.spec
+helix_desktop/helix.ico
+
+# Data files
+scripts/doench2016.csv
+scripts/*.csv
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.iml

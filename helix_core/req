@@ -1,0 +1,11 @@
+streamlit==1.37.0
+plotly>=5.15
+py3Dmol>=2.0.4
+biopython>=1.83
+pandas>=2.2
+numpy>=1.26
+streamlit-authenticator==0.3.2
+SQLModel==0.0.16
+aiosqlite>=0.19
+python-dotenv>=1.0
+streamlit-lottie>=0.0.5
