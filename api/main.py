@@ -37,14 +37,36 @@ def health() -> dict:
     return {"status": "ok", "version": "0.4.0"}
 
 
-# Serve React frontend in production
-frontend_dist = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist')
-if os.path.exists(frontend_dist):
-    app.mount("/assets", StaticFiles(
-        directory=os.path.join(frontend_dist, 'assets')
-    ), name="assets")
+# Find frontend dist directory
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FRONTEND_DIST = os.path.join(BASE_DIR, "frontend", "dist")
 
+print(f"Looking for frontend at: {FRONTEND_DIST}")
+print(f"Frontend exists: {os.path.exists(FRONTEND_DIST)}")
+
+if os.path.exists(FRONTEND_DIST):
+    # Mount assets folder
+    assets_dir = os.path.join(FRONTEND_DIST, "assets")
+    if os.path.exists(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+    # Serve index.html for all non-API routes
     @app.get("/{full_path:path}")
     async def serve_frontend(full_path: str):
-        index = os.path.join(frontend_dist, 'index.html')
-        return FileResponse(index)
+        # Don't intercept API routes
+        if full_path.startswith("api/"):
+            return {"error": "not found"}
+        index = os.path.join(FRONTEND_DIST, "index.html")
+        if os.path.exists(index):
+            return FileResponse(index)
+        return {"error": "Frontend not built"}
+else:
+    print("WARNING: Frontend dist not found!")
+
+    @app.get("/{full_path:path}")
+    async def no_frontend(full_path: str):
+        return {
+            "error": "Frontend not found",
+            "looked_at": FRONTEND_DIST,
+            "base_dir": BASE_DIR,
+        }
