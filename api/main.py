@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from api.routes import grnas, session, scoring, ai, orfs, variants, protein, pdb, offtarget, primers, genes, sequences
 
@@ -31,3 +35,16 @@ app.include_router(sequences.router, prefix="/api")
 @app.get("/")
 def health() -> dict:
     return {"status": "ok", "version": "0.4.0"}
+
+
+# Serve React frontend in production
+frontend_dist = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist')
+if os.path.exists(frontend_dist):
+    app.mount("/assets", StaticFiles(
+        directory=os.path.join(frontend_dist, 'assets')
+    ), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        index = os.path.join(frontend_dist, 'index.html')
+        return FileResponse(index)
