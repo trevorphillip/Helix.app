@@ -32,7 +32,7 @@ app.include_router(genes.router, prefix="/api")
 app.include_router(sequences.router, prefix="/api")
 
 
-@app.get("/")
+@app.get("/health")
 def health() -> dict:
     return {"status": "ok", "version": "0.4.0"}
 
