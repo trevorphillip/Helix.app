@@ -3,22 +3,23 @@ import { findOrfs } from '../api'
 import { useHelixStore } from '../store.jsx'
 
 const T = {
-  bg:      '#0f1117',
-  surface: '#151821',
-  border:  '#1e2130',
-  border2: '#2a2e3e',
-  teal:    '#1D9E75',
-  amber:   '#EF9F27',
-  text:    '#e8e6df',
-  muted:   '#5F5E5A',
-  mid:     '#888780',
-  purple:  '#9B8FEF',
-  danger:  '#993C1D',
+  bg:      '#020a06',
+  surface: '#0a1f10',
+  border:  'rgba(0, 255, 136, 0.12)',
+  border2: 'rgba(0, 255, 136, 0.3)',
+  deep:    '#051209',
+  green:   '#00ff88',
+  greenDk: '#004422',
+  amber:   '#ffaa00',
+  red:     '#ff2244',
+  purple:  '#aa88ff',
+  text:    '#c8f5d8',
+  dim:     '#4a8a5a',
+  muted:   '#1a4a2a',
 }
 
 const FRAMES = ['+1', '+2', '+3', '-1', '-2', '-3']
 
-// SVG map constants
 const VW = 1000
 const LBL = 44
 const PAD_R = 10
@@ -26,23 +27,22 @@ const PAD_T = 8
 const PAD_B = 8
 const MAP_H = 200
 const TRACK_W = VW - LBL - PAD_R
-const LANE_H = (MAP_H - PAD_T - PAD_B) / 6  // ≈30.67
+const LANE_H = (MAP_H - PAD_T - PAD_B) / 6
 
 function useHover() {
   const [h, setH] = useState(false)
   return [h, { onMouseEnter: () => setH(true), onMouseLeave: () => setH(false) }]
 }
 
-// AA color coding
 const HYDROPHOBIC = new Set('AILMFWV')
 const POLAR       = new Set('STNQ')
 const CHARGED     = new Set('DEKR')
 
 function aaColor(aa) {
   if (HYDROPHOBIC.has(aa)) return T.amber
-  if (POLAR.has(aa))       return T.teal
+  if (POLAR.has(aa))       return T.green
   if (CHARGED.has(aa))     return T.purple
-  if (aa === '*')           return T.danger
+  if (aa === '*')           return T.red
   return T.text
 }
 
@@ -73,14 +73,12 @@ function SixFrameMap({ orfs, seqLen, selectedId, onSelect }) {
       {FRAMES.map((frame, idx) => {
         const cy = PAD_T + (idx + 0.5) * LANE_H
         const isForward = frame.startsWith('+')
-        const blockColor = isForward ? T.teal : T.amber
+        const blockColor = isForward ? T.green : T.amber
         const laneOrfs = orfs.filter(o => o.frame === frame)
 
         return (
           <g key={frame}>
-            {/* lane backbone */}
             <rect x={LBL} y={cy - 1} width={TRACK_W} height={2} fill={T.border} />
-            {/* frame label */}
             <text
               x={LBL - 6}
               y={cy}
@@ -91,7 +89,6 @@ function SixFrameMap({ orfs, seqLen, selectedId, onSelect }) {
             >
               {frame}
             </text>
-            {/* ORF blocks */}
             {laneOrfs.map(orf => {
               const isSelected = selectedId === orf.id
               return (
@@ -103,8 +100,8 @@ function SixFrameMap({ orfs, seqLen, selectedId, onSelect }) {
                   height={LANE_H - 8}
                   rx={2}
                   fill={blockColor}
-                  opacity={isSelected ? 1 : 0.8}
-                  stroke={isSelected ? 'white' : 'none'}
+                  opacity={isSelected ? 1 : 0.7}
+                  stroke={isSelected ? '#c8f5d8' : 'none'}
                   strokeWidth={1.5}
                   cursor="pointer"
                   onClick={() => onSelect(isSelected ? null : orf.id)}
@@ -155,8 +152,8 @@ export default function Orfs() {
     return (
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        height: 300, color: T.muted, fontSize: 13, textAlign: 'center',
-        lineHeight: 1.6,
+        height: 300, color: T.muted, fontSize: 12, textAlign: 'center',
+        lineHeight: 1.6, fontFamily: 'monospace',
       }}>
         Paste a sequence in the Sandbox tab<br />and run an analysis first
       </div>
@@ -164,9 +161,9 @@ export default function Orfs() {
   }
 
   const thStyle = {
-    padding: '8px 12px', color: T.muted, fontSize: 10,
-    textTransform: 'uppercase', letterSpacing: '0.8px',
-    fontWeight: 500, textAlign: 'left',
+    padding: '8px 12px', color: T.muted, fontSize: 9,
+    textTransform: 'uppercase', letterSpacing: '2px',
+    fontWeight: 500, textAlign: 'left', fontFamily: 'monospace',
   }
 
   return (
@@ -175,18 +172,18 @@ export default function Orfs() {
       {/* Controls */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 16,
-        background: T.surface, border: `0.5px solid ${T.border}`,
+        background: T.surface, border: `1px solid ${T.border}`,
         borderRadius: 8, padding: '12px 16px',
       }}>
-        <span style={{ fontSize: 12, color: T.muted, whiteSpace: 'nowrap' }}>Min ORF length</span>
+        <span style={{ fontSize: 11, color: T.muted, whiteSpace: 'nowrap', fontFamily: 'monospace' }}>Min ORF length</span>
         <input
           type="range" min={50} max={500} step={10}
           value={minLength}
           onChange={e => setMinLength(Number(e.target.value))}
-          style={{ flex: 1, accentColor: T.teal }}
+          style={{ flex: 1, accentColor: T.green }}
         />
         <span style={{
-          fontSize: 12, fontFamily: 'monospace', color: T.teal,
+          fontSize: 11, fontFamily: 'monospace', color: T.green,
           minWidth: 54, textAlign: 'right',
         }}>
           {minLength} bp
@@ -196,10 +193,11 @@ export default function Orfs() {
           disabled={loading}
           {...findEvents}
           style={{
-            padding: '6px 16px', borderRadius: 6,
-            background: findH && !loading ? '#0F6E56' : T.teal,
-            color: '#04342C', fontWeight: 500, fontSize: 13,
-            border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
+            padding: '6px 16px', borderRadius: 4,
+            background: findH && !loading ? T.greenDk : T.green,
+            color: '#020a06', fontWeight: 700, fontSize: 12,
+            fontFamily: 'monospace', border: 'none',
+            cursor: loading ? 'not-allowed' : 'pointer',
             opacity: loading ? 0.5 : 1,
             transition: 'background 0.15s',
             whiteSpace: 'nowrap',
@@ -209,40 +207,38 @@ export default function Orfs() {
         </button>
       </div>
 
-      {/* Error */}
       {error && (
         <div style={{
-          padding: '8px 16px', background: '#1a0808',
-          border: '0.5px solid #4a1010', borderRadius: 6,
-          color: '#f09595', fontSize: 12,
+          padding: '8px 16px', background: 'rgba(255,34,68,0.08)',
+          border: '1px solid rgba(255,34,68,0.3)', borderRadius: 6,
+          color: T.red, fontSize: 12, fontFamily: 'monospace',
         }}>
           <span style={{ fontWeight: 700 }}>Error: </span>{error}
         </div>
       )}
 
-      {/* 6-frame map */}
       {result && (
         <div style={{
-          background: T.surface, border: `0.5px solid ${T.border}`,
+          background: T.surface, border: `1px solid ${T.border}`,
           borderRadius: 8, overflow: 'hidden',
         }}>
           <div style={{
-            padding: '8px 16px', borderBottom: `0.5px solid ${T.border}`,
+            padding: '8px 16px', borderBottom: `1px solid ${T.border}`,
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
-            <span style={{ fontSize: 10, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+            <span style={{ fontSize: 9, color: T.muted, textTransform: 'uppercase', letterSpacing: '2px', fontFamily: 'monospace' }}>
               6-Frame ORF Map
             </span>
-            <div style={{ display: 'flex', gap: 16, fontSize: 11, color: T.muted, alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 16, fontSize: 10, color: T.muted, alignItems: 'center', fontFamily: 'monospace' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: T.teal }} />
+                <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: T.green }} />
                 Forward
               </span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: T.amber }} />
                 Reverse
               </span>
-              <span style={{ color: T.mid }}>{result.total} ORFs · {seqLen} bp</span>
+              <span style={{ color: T.dim }}>{result.total} ORFs · {seqLen} bp</span>
             </div>
           </div>
           <SixFrameMap
@@ -254,21 +250,20 @@ export default function Orfs() {
         </div>
       )}
 
-      {/* ORF table */}
       {result && orfs.length > 0 && (
         <div style={{
-          background: T.surface, border: `0.5px solid ${T.border}`,
+          background: T.surface, border: `1px solid ${T.border}`,
           borderRadius: 8, overflow: 'hidden',
         }}>
-          <div style={{ padding: '8px 16px', borderBottom: `0.5px solid ${T.border}` }}>
-            <span style={{ fontSize: 10, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          <div style={{ padding: '8px 16px', borderBottom: `1px solid ${T.border}` }}>
+            <span style={{ fontSize: 9, color: T.muted, textTransform: 'uppercase', letterSpacing: '2px', fontFamily: 'monospace' }}>
               ORF Results — {result.total} found
             </span>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ borderBottom: `0.5px solid ${T.border}` }}>
+                <tr style={{ borderBottom: `1px solid ${T.border}` }}>
                   <th style={thStyle}>Frame</th>
                   <th style={thStyle}>Start</th>
                   <th style={thStyle}>End</th>
@@ -284,22 +279,22 @@ export default function Orfs() {
                       key={orf.id}
                       onClick={() => handleSelectOrf(isSelected ? null : orf.id)}
                       style={{
-                        borderBottom: `0.5px solid ${T.border}`,
-                        borderLeft: isSelected ? `2px solid ${T.teal}` : '2px solid transparent',
+                        borderBottom: `1px solid ${T.border}`,
+                        borderLeft: isSelected ? `2px solid ${T.green}` : '2px solid transparent',
                         cursor: 'pointer',
-                        background: isSelected ? '#161c2e' : 'transparent',
+                        background: isSelected ? 'rgba(0,255,136,0.04)' : 'transparent',
                         transition: 'background 0.1s',
                       }}
-                      onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = '#1a1f2e' }}
+                      onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(0,255,136,0.03)' }}
                       onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent' }}
                     >
-                      <td style={{ padding: '8px 12px', fontFamily: 'monospace', fontSize: 12, color: orf.frame.startsWith('+') ? T.teal : T.amber }}>
+                      <td style={{ padding: '8px 12px', fontFamily: 'monospace', fontSize: 12, color: orf.frame.startsWith('+') ? T.green : T.amber }}>
                         {orf.frame}
                       </td>
-                      <td style={{ padding: '8px 12px', color: T.mid, fontSize: 12, fontFamily: 'monospace' }}>{orf.start}</td>
-                      <td style={{ padding: '8px 12px', color: T.mid, fontSize: 12, fontFamily: 'monospace' }}>{orf.end}</td>
+                      <td style={{ padding: '8px 12px', color: T.dim, fontSize: 12, fontFamily: 'monospace' }}>{orf.start}</td>
+                      <td style={{ padding: '8px 12px', color: T.dim, fontSize: 12, fontFamily: 'monospace' }}>{orf.end}</td>
                       <td style={{ padding: '8px 12px', color: T.text, fontSize: 12, fontFamily: 'monospace' }}>{orf.length} bp</td>
-                      <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: T.mid, fontSize: 12 }}>{orf.protein}</td>
+                      <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: T.dim, fontSize: 12 }}>{orf.protein}</td>
                     </tr>
                   )
                 })}
@@ -309,45 +304,40 @@ export default function Orfs() {
         </div>
       )}
 
-      {/* No ORFs */}
       {result && orfs.length === 0 && (
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          padding: '48px 0', color: T.muted, fontSize: 13,
+          padding: '48px 0', color: T.muted, fontSize: 12, fontFamily: 'monospace',
         }}>
           No ORFs found with minimum length {minLength} bp — try reducing the slider
         </div>
       )}
 
-      {/* Selected ORF panel */}
       {selectedOrf && (
         <div style={{
-          background: T.surface, border: `0.5px solid ${T.border}`,
+          background: T.surface, border: `1px solid ${T.border}`,
           borderRadius: 8, padding: 16,
         }}>
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             marginBottom: 12,
           }}>
-            <div style={{ display: 'flex', gap: 20, fontSize: 12, color: T.muted }}>
+            <div style={{ display: 'flex', gap: 20, fontSize: 11, color: T.muted, fontFamily: 'monospace' }}>
               <span>
                 Frame{' '}
-                <span style={{
-                  fontFamily: 'monospace',
-                  color: selectedOrf.frame.startsWith('+') ? T.teal : T.amber,
-                }}>
+                <span style={{ color: selectedOrf.frame.startsWith('+') ? T.green : T.amber }}>
                   {selectedOrf.frame}
                 </span>
               </span>
               <span>
                 Position{' '}
-                <span style={{ color: T.text, fontFamily: 'monospace' }}>
+                <span style={{ color: T.text }}>
                   {selectedOrf.start}–{selectedOrf.end}
                 </span>
               </span>
               <span>
                 Length{' '}
-                <span style={{ color: T.text, fontFamily: 'monospace' }}>
+                <span style={{ color: T.text }}>
                   {selectedOrf.length} bp
                 </span>
               </span>
@@ -365,24 +355,24 @@ export default function Orfs() {
           </div>
 
           <div style={{
-            fontSize: 10, color: T.muted,
-            textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 8,
+            fontSize: 9, color: T.muted,
+            textTransform: 'uppercase', letterSpacing: '2px', marginBottom: 8, fontFamily: 'monospace',
           }}>
             Protein Sequence ({selectedOrf.full_protein.length} aa)
           </div>
 
           <div style={{
-            background: T.bg, borderRadius: 6, padding: 12,
-            border: `0.5px solid ${T.border}`,
+            background: T.deep, borderRadius: 4, padding: 12,
+            border: `1px solid ${T.border}`,
           }}>
             <ProteinSeq seq={selectedOrf.full_protein} />
           </div>
 
-          <div style={{ display: 'flex', gap: 20, marginTop: 10, fontSize: 11, color: T.muted }}>
+          <div style={{ display: 'flex', gap: 20, marginTop: 10, fontSize: 10, color: T.muted, fontFamily: 'monospace' }}>
             <span><span style={{ color: T.amber }}>■</span> Hydrophobic</span>
-            <span><span style={{ color: T.teal }}>■</span> Polar</span>
+            <span><span style={{ color: T.green }}>■</span> Polar</span>
             <span><span style={{ color: T.purple }}>■</span> Charged</span>
-            <span><span style={{ color: T.danger }}>■</span> Stop</span>
+            <span><span style={{ color: T.red }}>■</span> Stop</span>
           </div>
         </div>
       )}

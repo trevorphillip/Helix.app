@@ -16,8 +16,8 @@ const BASE_EMISSIVE     = { A: 0x00cc66, T: 0xff8800, G: 0xaa66ff, C: 0xdd2266 }
 const BASE_EMISSIVE_INT = { A: 0.5,      T: 0.5,      G: 0.4,      C: 0.4      }
 const COMPLEMENT        = { A: 'T', T: 'A', G: 'C', C: 'G' }
 
-const RISK_BG    = { low: '#085041', med: '#633806', high: '#6B1D1D' }
-const RISK_COLOR = { low: '#5DCAA5', med: '#FAC775', high: '#F09595' }
+const RISK_BG    = { low: 'rgba(0,255,136,0.1)',  med: 'rgba(255,170,0,0.1)',  high: 'rgba(255,34,68,0.1)'  }
+const RISK_COLOR = { low: '#00ff88',               med: '#ffaa00',               high: '#ff2244'               }
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -212,7 +212,7 @@ export default function CrisprGame() {
     const mount = mountRef.current
     if (!mount) return
     const w = mount.clientWidth  || window.innerWidth
-    const h = mount.clientHeight || (window.innerHeight - 48)
+    const h = mount.clientHeight || (window.innerHeight - 44)
 
     // hoisted so cleanup can always reach them even if setup throws
     let renderer, controls, ro
@@ -348,7 +348,7 @@ export default function CrisprGame() {
     animate()
 
     ro = new ResizeObserver(() => {
-      const nw = mount.clientWidth, nh = mount.clientHeight || window.innerHeight - 48
+      const nw = mount.clientWidth, nh = mount.clientHeight || window.innerHeight - 44
       camera.aspect = nw / nh; camera.updateProjectionMatrix(); renderer.setSize(nw, nh)
     })
     ro.observe(mount)
@@ -591,11 +591,11 @@ export default function CrisprGame() {
   // ── empty state ───────────────────────────────────────────────────────────
   if (!seqLen || grnas.length === 0) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 48px)', background: '#020a06' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 44px)', background: '#020a06' }}>
         <div style={{ ...panel, textAlign: 'center', maxWidth: 340 }}>
           <div style={{ ...mg, fontSize: 16, fontWeight: 700, marginBottom: 8 }}>NO TARGETS LOADED</div>
-          <div style={{ color: '#4caf7d', fontSize: 13, marginBottom: 16 }}>Run an analysis in Sandbox first to load targets</div>
-          <button onClick={() => navigate('/')} style={{ background: '#00aa55', color: '#020a06', border: 'none', borderRadius: 6, padding: '8px 20px', fontWeight: 700, cursor: 'pointer', fontSize: 13, boxShadow: '0 0 12px rgba(0,255,136,0.3)' }}>
+          <div style={{ color: '#4a8a5a', fontSize: 13, marginBottom: 16 }}>Run an analysis in Sandbox first to load targets</div>
+          <button onClick={() => navigate('/')} style={{ background: '#00ff88', color: '#020a06', border: 'none', borderRadius: 6, padding: '8px 20px', fontWeight: 700, cursor: 'pointer', fontSize: 13, boxShadow: '0 0 12px rgba(0,255,136,0.3)' }}>
             Go to Sandbox →
           </button>
         </div>
@@ -606,7 +606,7 @@ export default function CrisprGame() {
   const allCut = totalCuts >= grnas.length
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: 'calc(100vh - 48px)', background: '#020a06', overflow: 'hidden' }}>
+    <div style={{ position: 'relative', width: '100%', height: 'calc(100vh - 44px)', background: '#020a06', overflow: 'hidden' }}>
       <style>{`
         @keyframes bpBlink  { 0%,100%{opacity:1} 50%{opacity:0} }
         @keyframes slideUp  { from{transform:translateY(16px);opacity:0} to{transform:translateY(0);opacity:1} }
@@ -629,7 +629,7 @@ export default function CrisprGame() {
           HELIX CRISPR INTERFACE v2.0
           <span style={{ animation: 'bpBlink 1s step-end infinite', marginLeft: 4 }}>█</span>
         </div>
-        <div style={{ fontSize: 11, color: '#4caf7d', lineHeight: 1.7 }}>
+        <div style={{ fontSize: 11, color: '#4a8a5a', lineHeight: 1.7 }}>
           Sequence: <span style={mg}>{seq.substring(0, 12)}…</span><br />
           Targets: <span style={mg}>{grnas.length} PAM sites</span><br />
           Cuts made: <span style={{ fontFamily: 'monospace', color: totalCuts > 0 ? '#00ff88' : '#1a4a2a', fontWeight: 700 }}>{totalCuts} / {grnas.length}</span><br />
@@ -656,12 +656,12 @@ export default function CrisprGame() {
         <div style={{ position: 'absolute', top: 14, right: 14, ...panel, minWidth: 230, animation: 'slideUp 0.2s' }}>
           <div style={{ ...mg, fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 8 }}>TARGET ACQUIRED</div>
           <div style={{ fontSize: 10, color: '#1a4a2a', marginBottom: 3 }}>
-            Guide: <span style={{ fontFamily: 'monospace', color: '#4caf7d', wordBreak: 'break-all' }}>{(tooltip.grna.guide || '').slice(0, 20)}</span>
+            Guide: <span style={{ fontFamily: 'monospace', color: '#4a8a5a', wordBreak: 'break-all' }}>{(tooltip.grna.guide || '').slice(0, 20)}</span>
           </div>
-          <div style={{ fontSize: 11, color: '#4caf7d', marginBottom: 2 }}>
+          <div style={{ fontSize: 11, color: '#4a8a5a', marginBottom: 2 }}>
             Position: bp <span style={mg}>{tooltip.grna.pos}</span>
           </div>
-          <div style={{ fontSize: 11, color: '#4caf7d', marginBottom: 8 }}>
+          <div style={{ fontSize: 11, color: '#4a8a5a', marginBottom: 8 }}>
             Efficiency:{' '}
             <span style={{ fontFamily: 'monospace', fontWeight: 700, color: tooltip.grna.score >= 0.8 ? '#00ff88' : tooltip.grna.score >= 0.6 ? '#ffaa00' : '#ff4444' }}>
               {(tooltip.grna.score * 100).toFixed(0)}%
@@ -682,7 +682,7 @@ export default function CrisprGame() {
           <div style={{ fontSize: 24, fontFamily: 'monospace', fontWeight: 900, marginBottom: 8, color: resultPanel.grna.score >= 0.8 ? '#00ff88' : resultPanel.grna.score >= 0.6 ? '#ffaa00' : '#ff4444' }}>
             {resultPanel.grna.score >= 0.8 ? 'CRITICAL HIT' : resultPanel.grna.score >= 0.6 ? 'GOOD CUT' : 'LOW EFFICIENCY'}
           </div>
-          <div style={{ fontSize: 14, color: '#4caf7d', marginBottom: 4 }}>
+          <div style={{ fontSize: 14, color: '#4a8a5a', marginBottom: 4 }}>
             Efficiency: {(resultPanel.grna.score * 100).toFixed(0)}%
           </div>
           <div style={{ fontSize: 20, fontFamily: 'monospace', color: '#ffaa00', fontWeight: 700, marginBottom: 10 }}>
@@ -701,7 +701,7 @@ export default function CrisprGame() {
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(2,10,6,0.8)', backdropFilter: 'blur(10px)', animation: 'fadeInG 0.5s' }}>
           <div style={{ ...panel, textAlign: 'center', maxWidth: 360, boxShadow: '0 0 60px rgba(0,255,136,0.2)' }}>
             <div style={{ ...mg, fontSize: 28, fontWeight: 900, letterSpacing: '0.1em', marginBottom: 6 }}>SEQUENCE EDITED</div>
-            <div style={{ color: '#4caf7d', fontSize: 13, marginBottom: 20 }}>All PAM sites targeted successfully</div>
+            <div style={{ color: '#4a8a5a', fontSize: 13, marginBottom: 20 }}>All PAM sites targeted successfully</div>
             <div style={{ display: 'flex', gap: 24, justifyContent: 'center', marginBottom: 20 }}>
               <div>
                 <div style={{ ...mg, fontSize: 32, fontWeight: 900 }}>{totalXP}</div>
@@ -716,7 +716,7 @@ export default function CrisprGame() {
                 <div style={{ fontSize: 10, color: '#1a4a2a', textTransform: 'uppercase', letterSpacing: 1 }}>Avg Eff</div>
               </div>
             </div>
-            <button onClick={() => navigate('/')} style={{ background: '#00aa55', color: '#020a06', border: 'none', borderRadius: 6, padding: '10px 28px', fontWeight: 700, cursor: 'pointer', fontSize: 14, boxShadow: '0 0 16px rgba(0,255,136,0.3)' }}>
+            <button onClick={() => navigate('/')} style={{ background: '#00ff88', color: '#020a06', border: 'none', borderRadius: 6, padding: '10px 28px', fontWeight: 700, cursor: 'pointer', fontSize: 14, boxShadow: '0 0 16px rgba(0,255,136,0.3)' }}>
               Return to Sandbox
             </button>
           </div>
@@ -725,7 +725,7 @@ export default function CrisprGame() {
 
       {/* BOTTOM CENTER — instructions */}
       {showInst && (
-        <div style={{ position: 'absolute', bottom: seqLen > BP_WINDOW ? 64 : 16, left: '50%', transform: 'translateX(-50%)', ...panel, fontSize: 12, color: '#4caf7d', whiteSpace: 'nowrap', animation: 'instFade 5s forwards' }}>
+        <div style={{ position: 'absolute', bottom: seqLen > BP_WINDOW ? 64 : 16, left: '50%', transform: 'translateX(-50%)', ...panel, fontSize: 12, color: '#4a8a5a', whiteSpace: 'nowrap', animation: 'instFade 5s forwards' }}>
           HOVER to target PAM sites • CLICK to fire Cas9
         </div>
       )}
@@ -737,7 +737,7 @@ export default function CrisprGame() {
             style={{ ...panel, padding: '6px 12px', fontSize: 11, cursor: canPrev ? 'pointer' : 'default', color: canPrev ? '#00ff88' : '#1a4a2a', border: `1px solid rgba(0,255,136,${canPrev ? '0.3' : '0.08'})` }}>
             ← Prev {BP_WINDOW}bp
           </button>
-          <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#4caf7d', background: 'rgba(2,10,6,0.7)', padding: '5px 10px', borderRadius: 6, border: '1px solid rgba(0,255,136,0.1)' }}>
+          <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#4a8a5a', background: 'rgba(2,10,6,0.7)', padding: '5px 10px', borderRadius: 6, border: '1px solid rgba(0,255,136,0.1)' }}>
             bp {bpOffset + 1}–{Math.min(bpOffset + BP_WINDOW, seqLen)} / {seqLen}
           </span>
           <button disabled={!canNext} onClick={handleNext}
@@ -752,7 +752,7 @@ export default function CrisprGame() {
         <div style={{ position: 'absolute', bottom: 14, right: 14, ...panel, minWidth: 210 }}>
           <div style={{ fontSize: 10, color: '#1a4a2a', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Cut Log</div>
           {cutLog.map((entry, i) => (
-            <div key={`${entry.pos}-${i}`} style={{ fontSize: 11, fontFamily: 'monospace', color: i === 0 ? '#00ff88' : '#4caf7d', marginBottom: 2, animation: i === 0 ? 'slideUp 0.3s' : 'none' }}>
+            <div key={`${entry.pos}-${i}`} style={{ fontSize: 11, fontFamily: 'monospace', color: i === 0 ? '#00ff88' : '#4a8a5a', marginBottom: 2, animation: i === 0 ? 'slideUp 0.3s' : 'none' }}>
               bp {entry.pos} — {(entry.score * 100).toFixed(0)}% eff
             </div>
           ))}

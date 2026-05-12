@@ -6,19 +6,19 @@ import { useHelixStore } from '../store.jsx'
 // ─── tokens ───────────────────────────────────────────────────────────────────
 
 const T = {
-  bg:      '#0f1117',
-  surface: '#151821',
-  border:  '#1e2130',
-  border2: '#2a2e3e',
-  teal:    '#1D9E75',
-  tealBg:  '#0F2E1F',
-  amber:   '#EF9F27',
-  text:    '#e8e6df',
-  muted:   '#5F5E5A',
-  mid:     '#888780',
-  red:     '#F09595',
-  redBg:   '#6B1D1D',
-  purple:  '#9B8FEF',
+  bg:      '#020a06',
+  surface: '#0a1f10',
+  border:  'rgba(0, 255, 136, 0.12)',
+  border2: 'rgba(0, 255, 136, 0.3)',
+  deep:    '#051209',
+  green:   '#00ff88',
+  greenDk: '#004422',
+  amber:   '#ffaa00',
+  red:     '#ff2244',
+  purple:  '#aa88ff',
+  text:    '#c8f5d8',
+  dim:     '#4a8a5a',
+  muted:   '#1a4a2a',
 }
 
 const TABS = ['Gene Database', 'gRNA Libraries', 'My Sequences']
@@ -41,14 +41,14 @@ const ORGANISM_OPTIONS = [
 ]
 
 const CAT_COLORS = {
-  tumor_suppressor:  { bg: '#1a1025', color: T.purple },
-  oncogene:          { bg: '#3D1515', color: T.red    },
-  immune_checkpoint: { bg: '#0F2E1F', color: T.teal   },
-  housekeeping:      { bg: '#2a1f00', color: T.amber  },
-  crispr_essential:  { bg: '#1a1f2e', color: T.mid    },
+  tumor_suppressor:  { background: 'rgba(170,136,255,0.1)', color: T.purple },
+  oncogene:          { background: 'rgba(255,34,68,0.1)',   color: T.red    },
+  immune_checkpoint: { background: 'rgba(0,255,136,0.1)',   color: T.green  },
+  housekeeping:      { background: 'rgba(255,170,0,0.1)',   color: T.amber  },
+  crispr_essential:  { background: 'rgba(74,138,90,0.1)',   color: T.dim    },
 }
 
-// ─── helpers ─────────────────────────────────────────────────────────────────
+// ─── helpers ──────────────────────────────────────────────────────────────────
 
 function useHover() {
   const [h, setH] = useState(false)
@@ -62,6 +62,7 @@ function CatBadge({ category }) {
     <span style={{
       ...s, padding: '2px 8px', borderRadius: 4,
       fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px',
+      fontFamily: 'monospace',
     }}>
       {label}
     </span>
@@ -74,13 +75,13 @@ function SkeletonCard() {
   )
   return (
     <div style={{
-      background: T.surface, border: `0.5px solid ${T.border}`,
+      background: T.surface, border: `1px solid ${T.border}`,
       borderRadius: 8, padding: 14, display: 'flex', flexDirection: 'column', gap: 10,
     }}>
       {bar('60%')}
       {bar('90%')}
       {bar('40%')}
-      <div style={{ height: 26, background: T.border, borderRadius: 6, marginTop: 4 }} />
+      <div style={{ height: 26, background: T.border, borderRadius: 4, marginTop: 4 }} />
     </div>
   )
 }
@@ -99,21 +100,25 @@ function GeneCard({ gene, onLoad, loadingAcc }) {
 
   return (
     <div style={{
-      background: T.surface, border: `0.5px solid ${T.border}`,
+      background: T.surface, border: `1px solid ${T.border}`,
       borderRadius: 8, padding: 14,
       display: 'flex', flexDirection: 'column', gap: 8,
-    }}>
+      transition: 'border-color 0.15s',
+    }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,255,136,0.25)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = T.border }}
+    >
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-        <span style={{ fontSize: 14, fontWeight: 600, color: T.text, fontFamily: 'monospace' }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: T.green, fontFamily: 'monospace' }}>
           {gene.name}
         </span>
         <CatBadge category={gene.category} />
       </div>
 
-      <p style={{ margin: 0, fontSize: 12, color: T.mid, lineHeight: 1.5 }}>{desc}</p>
+      <p style={{ margin: 0, fontSize: 11, color: T.dim, lineHeight: 1.5, fontFamily: 'monospace' }}>{desc}</p>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontFamily: 'monospace', fontSize: 11, color: T.muted }}>
+        <span style={{ fontFamily: 'monospace', fontSize: 10, color: T.muted }}>
           {gene.accession}
         </span>
         {gene.organism && (
@@ -129,10 +134,10 @@ function GeneCard({ gene, onLoad, loadingAcc }) {
           disabled={!!loadingAcc}
           {...hLoadEvents}
           style={{
-            flex: 1, padding: '6px 0', borderRadius: 6, fontSize: 12,
-            fontWeight: 500, border: 'none',
-            background: hLoad && !loadingAcc ? '#0F6E56' : T.teal,
-            color: '#04342C',
+            flex: 1, padding: '6px 0', borderRadius: 4, fontSize: 11,
+            fontWeight: 700, border: 'none', fontFamily: 'monospace',
+            background: hLoad && !loadingAcc ? T.greenDk : T.green,
+            color: '#020a06',
             cursor: loadingAcc ? 'not-allowed' : 'pointer',
             opacity: !!loadingAcc && !isLoading ? 0.4 : 1,
             transition: 'background 0.15s',
@@ -142,7 +147,7 @@ function GeneCard({ gene, onLoad, loadingAcc }) {
             ? <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                 <span style={{
                   width: 10, height: 10, borderRadius: '50%',
-                  border: `2px solid #04342C`, borderTopColor: 'transparent',
+                  border: `2px solid #020a06`, borderTopColor: 'transparent',
                   display: 'inline-block', animation: 'spin 0.7s linear infinite',
                 }} />
                 Loading…
@@ -154,13 +159,13 @@ function GeneCard({ gene, onLoad, loadingAcc }) {
           target="_blank"
           rel="noopener noreferrer"
           style={{
-            padding: '6px 10px', borderRadius: 6, fontSize: 12,
-            border: `0.5px solid ${T.border2}`, color: T.mid,
-            textDecoration: 'none', whiteSpace: 'nowrap',
+            padding: '6px 10px', borderRadius: 4, fontSize: 11,
+            border: `1px solid ${T.border}`, color: T.dim,
+            textDecoration: 'none', whiteSpace: 'nowrap', fontFamily: 'monospace',
             transition: 'color 0.15s, border-color 0.15s',
           }}
           onMouseEnter={e => { e.currentTarget.style.color = T.amber; e.currentTarget.style.borderColor = T.amber }}
-          onMouseLeave={e => { e.currentTarget.style.color = T.mid;   e.currentTarget.style.borderColor = T.border2 }}
+          onMouseLeave={e => { e.currentTarget.style.color = T.dim;   e.currentTarget.style.borderColor = T.border }}
         >
           NCBI →
         </a>
@@ -229,15 +234,16 @@ function GeneDatabaseTab() {
     : commonGenes.filter(g => g.category === category)
 
   const inputStyle = {
-    background: T.bg, border: `0.5px solid ${T.border2}`, borderRadius: 6,
-    padding: '7px 10px', fontSize: 13, color: T.text, outline: 'none',
+    background: T.deep, border: `1px solid ${T.border}`, borderRadius: 4,
+    padding: '7px 10px', fontSize: 12, color: T.green, outline: 'none',
+    fontFamily: 'monospace',
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Search bar */}
       <div style={{
-        background: T.surface, border: `0.5px solid ${T.border}`,
+        background: T.surface, border: `1px solid ${T.border}`,
         borderRadius: 8, padding: 16, display: 'flex', flexDirection: 'column', gap: 12,
       }}>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -246,12 +252,12 @@ function GeneDatabaseTab() {
             onChange={e => { setSearchQuery(e.target.value); if (!e.target.value) setSearchResults(null) }}
             onKeyDown={e => e.key === 'Enter' && handleSearch()}
             placeholder="Search gene name (e.g. BRCA1, TP53, KRAS)"
-            style={{ ...inputStyle, flex: '1 1 240px', fontFamily: 'monospace' }}
+            style={{ ...inputStyle, flex: '1 1 240px' }}
           />
           <select
             value={organism}
             onChange={e => setOrganism(e.target.value)}
-            style={{ ...inputStyle, cursor: 'pointer' }}
+            style={{ ...inputStyle, cursor: 'pointer', color: T.text }}
           >
             {ORGANISM_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
@@ -259,9 +265,9 @@ function GeneDatabaseTab() {
             onClick={handleSearch}
             disabled={searching}
             style={{
-              padding: '7px 20px', borderRadius: 6, fontWeight: 500, fontSize: 13,
-              background: T.teal, color: '#04342C', border: 'none',
-              cursor: searching ? 'not-allowed' : 'pointer',
+              padding: '7px 20px', borderRadius: 4, fontWeight: 700, fontSize: 12,
+              background: searching ? T.greenDk : T.green, color: '#020a06', border: 'none',
+              cursor: searching ? 'not-allowed' : 'pointer', fontFamily: 'monospace',
               opacity: searching ? 0.6 : 1,
             }}
           >
@@ -270,13 +276,13 @@ function GeneDatabaseTab() {
         </div>
 
         {searchResults === null && (
-          <p style={{ margin: 0, fontSize: 12, color: T.muted }}>
+          <p style={{ margin: 0, fontSize: 11, color: T.muted, fontFamily: 'monospace' }}>
             Or browse common CRISPR targets:
           </p>
         )}
       </div>
 
-      {/* Category pills — only shown when browsing common genes */}
+      {/* Category pills */}
       {searchResults === null && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {CATEGORIES.map(cat => (
@@ -284,10 +290,11 @@ function GeneDatabaseTab() {
               key={cat.key}
               onClick={() => setCategory(cat.key)}
               style={{
-                padding: '4px 12px', borderRadius: 20, fontSize: 11,
-                cursor: 'pointer', border: 'none', fontWeight: 500,
-                background: category === cat.key ? T.teal : '#1a1f2e',
-                color:      category === cat.key ? '#04342C' : T.mid,
+                padding: '4px 12px', borderRadius: 20, fontSize: 10,
+                cursor: 'pointer', border: `1px solid ${category === cat.key ? T.green : T.border}`,
+                fontWeight: 500, fontFamily: 'monospace',
+                background: category === cat.key ? T.green : 'transparent',
+                color: category === cat.key ? '#020a06' : T.dim,
                 transition: 'background 0.15s',
               }}
             >
@@ -299,15 +306,15 @@ function GeneDatabaseTab() {
 
       {searchResults !== null && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 12, color: T.muted }}>
-            {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} for "{searchQuery}"
+          <span style={{ fontSize: 11, color: T.muted, fontFamily: 'monospace' }}>
+            {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} for &quot;{searchQuery}&quot;
           </span>
           <button
             onClick={() => { setSearchResults(null); setSearchQuery('') }}
             style={{
-              background: 'transparent', border: `0.5px solid ${T.border2}`,
-              borderRadius: 4, padding: '2px 8px', fontSize: 11,
-              color: T.mid, cursor: 'pointer',
+              background: 'transparent', border: `1px solid ${T.border}`,
+              borderRadius: 4, padding: '2px 8px', fontSize: 10,
+              color: T.dim, cursor: 'pointer', fontFamily: 'monospace',
             }}
           >
             Clear
@@ -317,8 +324,8 @@ function GeneDatabaseTab() {
 
       {error && (
         <div style={{
-          padding: '8px 14px', background: '#1a0808', border: '0.5px solid #4a1010',
-          borderRadius: 6, color: T.red, fontSize: 12,
+          padding: '8px 14px', background: 'rgba(255,34,68,0.08)', border: '1px solid rgba(255,34,68,0.3)',
+          borderRadius: 6, color: T.red, fontSize: 12, fontFamily: 'monospace',
         }}>
           {error}
         </div>
@@ -332,7 +339,7 @@ function GeneDatabaseTab() {
           ? (
             <div style={{
               gridColumn: '1 / -1', padding: '48px 0',
-              color: T.muted, fontSize: 13, textAlign: 'center',
+              color: T.muted, fontSize: 12, textAlign: 'center', fontFamily: 'monospace',
             }}>
               {searchResults !== null ? 'No genes found — try a different search term' : 'No genes in this category'}
             </div>
@@ -360,15 +367,15 @@ function SeqCard({ seq, onLoad, onDelete }) {
 
   return (
     <div style={{
-      background: T.surface, border: `0.5px solid ${T.border}`,
+      background: T.surface, border: `1px solid ${T.border}`,
       borderRadius: 8, padding: 14, display: 'flex', flexDirection: 'column', gap: 8,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 14, fontWeight: 600, color: T.text }}>{seq.name}</span>
-        <span style={{ fontSize: 10, color: T.muted }}>{date}</span>
+        <span style={{ fontSize: 13, fontWeight: 600, color: T.text, fontFamily: 'monospace' }}>{seq.name}</span>
+        <span style={{ fontSize: 10, color: T.muted, fontFamily: 'monospace' }}>{date}</span>
       </div>
 
-      <div style={{ display: 'flex', gap: 12, fontSize: 11, color: T.muted }}>
+      <div style={{ display: 'flex', gap: 12, fontSize: 10, color: T.muted, fontFamily: 'monospace' }}>
         <span>{seq.length?.toLocaleString()} bp</span>
         {seq.organism && seq.organism !== 'unknown' && (
           <span style={{ fontStyle: 'italic' }}>{seq.organism}</span>
@@ -380,10 +387,10 @@ function SeqCard({ seq, onLoad, onDelete }) {
           onClick={() => onLoad(seq.id)}
           {...hLoadEvents}
           style={{
-            flex: 1, padding: '6px 0', borderRadius: 6, fontSize: 12,
-            fontWeight: 500, border: 'none',
-            background: hLoad ? '#0F6E56' : T.teal,
-            color: '#04342C', cursor: 'pointer',
+            flex: 1, padding: '6px 0', borderRadius: 4, fontSize: 11,
+            fontWeight: 700, border: 'none', fontFamily: 'monospace',
+            background: hLoad ? T.greenDk : T.green,
+            color: '#020a06', cursor: 'pointer',
             transition: 'background 0.15s',
           }}
         >
@@ -394,8 +401,9 @@ function SeqCard({ seq, onLoad, onDelete }) {
             <button
               onClick={() => onDelete(seq.id)}
               style={{
-                padding: '6px 10px', borderRadius: 6, fontSize: 11,
-                background: T.redBg, color: T.red, border: 'none', cursor: 'pointer',
+                padding: '6px 10px', borderRadius: 4, fontSize: 10,
+                background: 'rgba(255,34,68,0.1)', color: T.red,
+                border: '1px solid rgba(255,34,68,0.3)', cursor: 'pointer', fontFamily: 'monospace',
               }}
             >
               Confirm
@@ -403,9 +411,9 @@ function SeqCard({ seq, onLoad, onDelete }) {
             <button
               onClick={() => setConfirmDelete(false)}
               style={{
-                padding: '6px 10px', borderRadius: 6, fontSize: 11,
-                background: '#1a1f2e', color: T.mid, border: `0.5px solid ${T.border2}`,
-                cursor: 'pointer',
+                padding: '6px 10px', borderRadius: 4, fontSize: 10,
+                background: 'transparent', color: T.dim, border: `1px solid ${T.border}`,
+                cursor: 'pointer', fontFamily: 'monospace',
               }}
             >
               Cancel
@@ -415,13 +423,13 @@ function SeqCard({ seq, onLoad, onDelete }) {
           <button
             onClick={() => setConfirmDelete(true)}
             style={{
-              padding: '6px 10px', borderRadius: 6, fontSize: 12,
-              border: `0.5px solid ${T.border2}`, color: T.muted,
-              background: 'transparent', cursor: 'pointer',
+              padding: '6px 10px', borderRadius: 4, fontSize: 11,
+              border: `1px solid ${T.border}`, color: T.muted,
+              background: 'transparent', cursor: 'pointer', fontFamily: 'monospace',
               transition: 'color 0.15s, border-color 0.15s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.color = T.red; e.currentTarget.style.borderColor = T.red }}
-            onMouseLeave={e => { e.currentTarget.style.color = T.muted; e.currentTarget.style.borderColor = T.border2 }}
+            onMouseEnter={e => { e.currentTarget.style.color = T.red; e.currentTarget.style.borderColor = 'rgba(255,34,68,0.4)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = T.muted; e.currentTarget.style.borderColor = T.border }}
           >
             Delete
           </button>
@@ -496,10 +504,10 @@ function MySequencesTab() {
       {/* header row */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: T.surface, border: `0.5px solid ${T.border}`,
+        background: T.surface, border: `1px solid ${T.border}`,
         borderRadius: 8, padding: '12px 16px',
       }}>
-        <span style={{ fontSize: 12, color: T.muted }}>
+        <span style={{ fontSize: 11, color: T.muted, fontFamily: 'monospace' }}>
           {sequences.length} saved sequence{sequences.length !== 1 ? 's' : ''}
         </span>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -513,13 +521,13 @@ function MySequencesTab() {
           <button
             onClick={() => fileRef.current?.click()}
             style={{
-              padding: '6px 14px', borderRadius: 6, fontSize: 12,
-              border: `0.5px solid ${T.border2}`, color: T.mid,
-              background: 'transparent', cursor: 'pointer',
+              padding: '6px 14px', borderRadius: 4, fontSize: 11,
+              border: `1px solid ${T.border}`, color: T.dim,
+              background: 'transparent', cursor: 'pointer', fontFamily: 'monospace',
               transition: 'color 0.15s, border-color 0.15s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.color = T.teal; e.currentTarget.style.borderColor = T.teal }}
-            onMouseLeave={e => { e.currentTarget.style.color = T.mid;  e.currentTarget.style.borderColor = T.border2 }}
+            onMouseEnter={e => { e.currentTarget.style.color = T.green; e.currentTarget.style.borderColor = T.green }}
+            onMouseLeave={e => { e.currentTarget.style.color = T.dim;  e.currentTarget.style.borderColor = T.border }}
           >
             Upload FASTA
           </button>
@@ -528,8 +536,8 @@ function MySequencesTab() {
 
       {error && (
         <div style={{
-          padding: '8px 14px', background: '#1a0808', border: '0.5px solid #4a1010',
-          borderRadius: 6, color: T.red, fontSize: 12,
+          padding: '8px 14px', background: 'rgba(255,34,68,0.08)', border: '1px solid rgba(255,34,68,0.3)',
+          borderRadius: 6, color: T.red, fontSize: 12, fontFamily: 'monospace',
         }}>
           {error}
         </div>
@@ -544,8 +552,8 @@ function MySequencesTab() {
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           padding: '64px 0', gap: 10,
         }}>
-          <div style={{ color: T.muted, fontSize: 13 }}>No saved sequences yet</div>
-          <div style={{ color: T.muted, fontSize: 12, opacity: 0.7 }}>
+          <div style={{ color: T.muted, fontSize: 12, fontFamily: 'monospace' }}>No saved sequences yet</div>
+          <div style={{ color: T.muted, fontSize: 11, opacity: 0.7, fontFamily: 'monospace' }}>
             Sequences you save from the Sandbox will appear here
           </div>
         </div>
@@ -565,24 +573,24 @@ function MySequencesTab() {
   )
 }
 
-// ─── gRNA libraries tab (placeholder) ────────────────────────────────────────
+// ─── gRNA libraries tab ───────────────────────────────────────────────────────
 
 function GrnaLibrariesTab() {
   return (
     <div style={{
-      background: T.surface, border: `0.5px solid ${T.border}`,
+      background: T.surface, border: `1px solid ${T.border}`,
       borderRadius: 8, padding: '48px 32px',
       display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
     }}>
-      <div style={{ fontSize: 14, color: T.text, fontWeight: 500 }}>
+      <div style={{ fontSize: 13, color: T.green, fontWeight: 600, fontFamily: 'monospace' }}>
         Coming soon — Brunello and GeCKO libraries
       </div>
       <div style={{
-        fontSize: 12, color: T.muted, textAlign: 'center', lineHeight: 1.7,
-        maxWidth: 420,
+        fontSize: 11, color: T.muted, textAlign: 'center', lineHeight: 1.7,
+        maxWidth: 420, fontFamily: 'monospace',
       }}>
         Genome-wide CRISPR knockout libraries (Brunello, GeCKO v2, Brie) will be searchable here.
-        You'll be able to look up pre-validated gRNA sequences for any human or mouse gene
+        You&apos;ll be able to look up pre-validated gRNA sequences for any human or mouse gene
         and load them directly into the Sandbox.
       </div>
     </div>
@@ -596,27 +604,29 @@ export default function Library() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* spinner keyframe */}
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
 
       {/* tab bar */}
       <div style={{
-        background: T.surface, border: `0.5px solid ${T.border}`,
+        background: T.surface, border: `1px solid ${T.border}`,
         borderRadius: 8, overflow: 'hidden',
       }}>
         <div style={{
-          display: 'flex', borderBottom: `0.5px solid ${T.border}`,
+          display: 'flex', borderBottom: `1px solid rgba(0,255,136,0.1)`,
+          background: 'rgba(2,10,6,0.9)',
         }}>
           {TABS.map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               style={{
-                padding: '10px 18px', fontSize: 13, fontWeight: 400,
-                color: activeTab === tab ? T.amber : T.muted,
+                padding: '10px 18px', fontSize: 10, fontWeight: 400,
+                fontFamily: 'monospace', letterSpacing: '1px', textTransform: 'uppercase',
+                color: activeTab === tab ? T.green : T.muted,
                 background: 'transparent', border: 'none',
-                borderBottom: `2px solid ${activeTab === tab ? T.amber : 'transparent'}`,
+                borderBottom: `2px solid ${activeTab === tab ? T.green : 'transparent'}`,
                 cursor: 'pointer', transition: 'color 0.15s', whiteSpace: 'nowrap',
+                textShadow: activeTab === tab ? '0 0 8px rgba(0,255,136,0.5)' : 'none',
               }}
             >
               {tab}

@@ -6,15 +6,19 @@ import ProteinViewer3D from '../components/ProteinViewer3D'
 // ─── design tokens ────────────────────────────────────────────────────────────
 
 const T = {
-  bg:      '#0f1117',
-  surface: '#151821',
-  border:  '#1e2130',
-  border2: '#2a2e3e',
-  teal:    '#1D9E75',
-  amber:   '#EF9F27',
-  text:    '#e8e6df',
-  muted:   '#5F5E5A',
-  mid:     '#888780',
+  bg:      '#020a06',
+  surface: '#0a1f10',
+  border:  'rgba(0, 255, 136, 0.12)',
+  border2: 'rgba(0, 255, 136, 0.3)',
+  deep:    '#051209',
+  green:   '#00ff88',
+  greenDk: '#004422',
+  amber:   '#ffaa00',
+  red:     '#ff2244',
+  purple:  '#aa88ff',
+  text:    '#c8f5d8',
+  dim:     '#4a8a5a',
+  muted:   '#1a4a2a',
 }
 
 // ─── amino acid helpers ───────────────────────────────────────────────────────
@@ -25,9 +29,9 @@ const CHARGED     = new Set('DEKRH')
 
 function aaColor(aa) {
   if (HYDROPHOBIC.has(aa)) return T.amber
-  if (POLAR.has(aa))       return T.teal
-  if (CHARGED.has(aa))     return '#9B8FEF'
-  if (aa === '*')           return '#993C1D'
+  if (POLAR.has(aa))       return T.green
+  if (CHARGED.has(aa))     return T.purple
+  if (aa === '*')           return T.red
   return T.text
 }
 
@@ -68,12 +72,12 @@ function CodonViewer({ protein, dnaUsed }) {
               <div key={ci} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
                 <div style={{
                   padding: '2px 5px',
-                  background: isStop ? '#3D1515' : '#1a1f2e',
-                  border: `0.5px solid ${isStop ? '#993C1D' : T.border2}`,
+                  background: isStop ? 'rgba(255,34,68,0.12)' : T.deep,
+                  border: `1px solid ${isStop ? 'rgba(255,34,68,0.4)' : T.border}`,
                   borderRadius: 4,
                   fontFamily: 'monospace',
                   fontSize: 11,
-                  color: isStop ? '#993C1D' : T.text,
+                  color: isStop ? T.red : T.text,
                   letterSpacing: '0.5px',
                 }}>
                   {dna}
@@ -87,7 +91,7 @@ function CodonViewer({ protein, dnaUsed }) {
         </div>
       ))}
       {remaining > 0 && (
-        <div style={{ fontSize: 12, color: T.muted, marginTop: 4 }}>
+        <div style={{ fontSize: 11, color: T.muted, marginTop: 4, fontFamily: 'monospace' }}>
           … and {remaining} more codon{remaining !== 1 ? 's' : ''}
         </div>
       )}
@@ -132,13 +136,13 @@ function StatCard({ label, value, color }) {
   return (
     <div style={{
       flex: 1,
-      background: T.surface,
-      border: `0.5px solid ${T.border}`,
-      borderRadius: 8,
+      background: 'rgba(10,31,16,0.8)',
+      border: `1px solid ${T.border}`,
+      borderRadius: 6,
       padding: '12px 14px',
     }}>
       <div style={{ color, fontSize: 20, fontWeight: 500, fontFamily: 'monospace' }}>{value}</div>
-      <div style={{ color: T.muted, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.8px', marginTop: 4 }}>
+      <div style={{ color: T.muted, fontSize: 9, textTransform: 'uppercase', letterSpacing: '2px', marginTop: 4, fontFamily: 'monospace' }}>
         {label}
       </div>
     </div>
@@ -153,9 +157,9 @@ const C_ML = 30
 const C_MR = 10
 const C_MT = 8
 const C_MB = 28
-const C_IW = C_W - C_ML - C_MR   // inner width  = 960
-const C_IH = C_H - C_MT - C_MB   // inner height = 84
-const BAR_W = C_IW / 20           // 48px per AA
+const C_IW = C_W - C_ML - C_MR
+const C_IH = C_H - C_MT - C_MB
+const BAR_W = C_IW / 20
 
 function AaChart({ aaComposition, proteinLength }) {
   const [hoveredAa, setHoveredAa] = useState(null)
@@ -180,7 +184,6 @@ function AaChart({ aaComposition, proteinLength }) {
     >
       <rect width={C_W} height={C_H} fill={T.surface} />
 
-      {/* grid lines */}
       {[0, 0.25, 0.5, 0.75, 1].map(t => {
         const y = C_MT + C_IH - t * C_IH
         return (
@@ -189,7 +192,6 @@ function AaChart({ aaComposition, proteinLength }) {
         )
       })}
 
-      {/* bars + labels */}
       {ALL_AA.map((aa, i) => {
         const count  = aaComposition[aa] ?? 0
         const x      = C_ML + i * BAR_W
@@ -200,13 +202,12 @@ function AaChart({ aaComposition, proteinLength }) {
             onMouseEnter={() => setHoveredAa(aa)}
             onMouseLeave={() => setHoveredAa(null)}
           >
-            {/* invisible hover hit-area */}
             <rect x={x} y={0} width={BAR_W} height={C_H} fill="transparent" />
             <rect
               x={x + 3} y={barY(count)}
               width={BAR_W - 6} height={Math.max(barH(count), 0)}
-              fill={T.teal}
-              opacity={isHov ? 1 : 0.72}
+              fill={T.green}
+              opacity={isHov ? 1 : 0.65}
               rx={2}
             />
             <text
@@ -219,7 +220,6 @@ function AaChart({ aaComposition, proteinLength }) {
         )
       })}
 
-      {/* tooltip (rendered last so it overlaps bars) */}
       {hoverBar && hoverBar.count > 0 && (() => {
         const cx      = C_ML + (hoverBar.idx + 0.5) * BAR_W
         const tipW    = 72
@@ -230,7 +230,7 @@ function AaChart({ aaComposition, proteinLength }) {
         return (
           <g>
             <rect x={tipX} y={tipY} width={tipW} height={tipH}
-              fill="#1a1f2e" stroke={T.border2} strokeWidth={0.5} rx={3} />
+              fill={T.deep} stroke={T.border} strokeWidth={0.5} rx={3} />
             <text x={tipX + tipW / 2} y={tipY + 14}
               fill={T.text} fontSize={9.5} textAnchor="middle">
               {hoverBar.count} ({pct}%)
@@ -249,25 +249,25 @@ function AllFramesView({ results }) {
     <div style={{ display: 'flex', gap: 12 }}>
       {results.map(r => (
         <div key={r.frame} style={{
-          flex: 1, background: T.surface, border: `0.5px solid ${T.border}`,
+          flex: 1, background: T.surface, border: `1px solid ${T.border}`,
           borderRadius: 8, padding: 14,
         }}>
           <div style={{
-            fontSize: 10, color: T.muted,
-            textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 8,
+            fontSize: 9, color: T.muted,
+            textTransform: 'uppercase', letterSpacing: '2px', marginBottom: 8, fontFamily: 'monospace',
           }}>
             Frame {r.frame}
           </div>
-          <div style={{ fontFamily: 'monospace', fontSize: 11, color: T.mid, wordBreak: 'break-all', marginBottom: 10 }}>
+          <div style={{ fontFamily: 'monospace', fontSize: 11, color: T.dim, wordBreak: 'break-all', marginBottom: 10 }}>
             {r.protein.length > 60 ? r.protein.slice(0, 60) + '…' : r.protein}
           </div>
-          <div style={{ display: 'flex', gap: 16, fontSize: 11, color: T.muted }}>
+          <div style={{ display: 'flex', gap: 16, fontSize: 10, color: T.muted, fontFamily: 'monospace' }}>
             <span>
-              <span style={{ color: T.teal, fontFamily: 'monospace' }}>{r.length}</span> aa
+              <span style={{ color: T.green }}>{r.length}</span> aa
             </span>
             <span>
               {r.stop_position !== null
-                ? <>stop at <span style={{ color: '#993C1D', fontFamily: 'monospace' }}>{r.stop_position}</span></>
+                ? <>stop at <span style={{ color: T.red }}>{r.stop_position}</span></>
                 : <span style={{ color: T.muted }}>no stop</span>
               }
             </span>
@@ -328,28 +328,25 @@ export default function Protein() {
     }
   }
 
-  // ── empty state ────────────────────────────────────────────────────────────
-
   if (!sequence) {
     return (
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        height: 300, color: T.muted, fontSize: 13, textAlign: 'center', lineHeight: 1.6,
+        height: 300, color: T.muted, fontSize: 12, textAlign: 'center', lineHeight: 1.6,
+        fontFamily: 'monospace',
       }}>
         Paste a sequence in the Sandbox tab<br />and run an analysis first
       </div>
     )
   }
 
-  // ── section wrapper helper ─────────────────────────────────────────────────
-
   const Section = ({ title, children }) => (
     <div style={{
-      background: T.surface, border: `0.5px solid ${T.border}`,
+      background: T.surface, border: `1px solid ${T.border}`,
       borderRadius: 8, overflow: 'hidden',
     }}>
-      <div style={{ padding: '8px 16px', borderBottom: `0.5px solid ${T.border}` }}>
-        <span style={{ fontSize: 10, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+      <div style={{ padding: '8px 16px', borderBottom: `1px solid ${T.border}` }}>
+        <span style={{ fontSize: 9, color: T.muted, textTransform: 'uppercase', letterSpacing: '2px', fontFamily: 'monospace' }}>
           {title}
         </span>
       </div>
@@ -362,7 +359,7 @@ export default function Protein() {
 
       {/* Controls */}
       <div style={{
-        background: T.surface, border: `0.5px solid ${T.border}`,
+        background: T.surface, border: `1px solid ${T.border}`,
         borderRadius: 8, padding: '12px 16px',
         display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
       }}>
@@ -374,10 +371,11 @@ export default function Protein() {
                 key={value}
                 onClick={() => setFrame(value)}
                 style={{
-                  padding: '5px 12px', borderRadius: 6, cursor: 'pointer',
-                  border: 'none', fontSize: 12, fontWeight: 500,
-                  background: active ? T.teal : '#1a1f2e',
-                  color: active ? '#04342C' : T.mid,
+                  padding: '5px 12px', borderRadius: 4, cursor: 'pointer',
+                  border: `1px solid ${active ? T.green : T.border}`,
+                  fontSize: 11, fontWeight: active ? 700 : 400, fontFamily: 'monospace',
+                  background: active ? T.green : 'transparent',
+                  color: active ? '#020a06' : T.dim,
                   transition: 'background 0.12s, color 0.12s',
                 }}
               >
@@ -392,10 +390,11 @@ export default function Protein() {
           disabled={loading}
           {...transEvents}
           style={{
-            padding: '6px 16px', borderRadius: 6,
-            background: transH && !loading ? '#0F6E56' : T.teal,
-            color: '#04342C', fontWeight: 500, fontSize: 13,
-            border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
+            padding: '6px 16px', borderRadius: 4,
+            background: transH && !loading ? T.greenDk : T.green,
+            color: '#020a06', fontWeight: 700, fontSize: 12,
+            fontFamily: 'monospace', border: 'none',
+            cursor: loading ? 'not-allowed' : 'pointer',
             opacity: loading ? 0.5 : 1,
             transition: 'background 0.15s',
             whiteSpace: 'nowrap',
@@ -405,42 +404,43 @@ export default function Protein() {
         </button>
 
         {mainResult && !isAll && (
-          <div style={{ display: 'flex', gap: 16, fontSize: 11, color: T.muted, marginLeft: 'auto' }}>
+          <div style={{ display: 'flex', gap: 16, fontSize: 10, color: T.muted, marginLeft: 'auto', fontFamily: 'monospace' }}>
             <span>
-              <span style={{ color: T.teal, fontFamily: 'monospace' }}>{mainResult.codon_count}</span> codons
+              <span style={{ color: T.green }}>{mainResult.codon_count}</span> codons
             </span>
             {mainResult.stop_position !== null && (
               <span>
-                stop at <span style={{ color: '#993C1D', fontFamily: 'monospace' }}>{mainResult.stop_position}</span>
+                stop at <span style={{ color: T.red }}>{mainResult.stop_position}</span>
               </span>
             )}
           </div>
         )}
       </div>
 
-      {/* Error */}
       {error && (
         <div style={{
-          padding: '8px 16px', background: '#1a0808',
-          border: '0.5px solid #4a1010', borderRadius: 6,
-          color: '#f09595', fontSize: 12,
+          padding: '8px 16px', background: 'rgba(255,34,68,0.08)',
+          border: '1px solid rgba(255,34,68,0.3)', borderRadius: 6,
+          color: T.red, fontSize: 12, fontFamily: 'monospace',
         }}>
           <span style={{ fontWeight: 700 }}>Error: </span>{error}
         </div>
       )}
 
       {/* Tab selector */}
-      <div style={{ display: 'flex', borderBottom: `0.5px solid ${T.border}` }}>
+      <div style={{ display: 'flex', borderBottom: `1px solid ${T.border}` }}>
         {['Analysis', '3D Structure'].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             style={{
-              padding: '8px 14px', fontSize: 12, fontWeight: 400,
-              color: activeTab === tab ? T.amber : T.muted,
+              padding: '8px 14px', fontSize: 10, fontWeight: 400,
+              fontFamily: 'monospace', letterSpacing: '1px', textTransform: 'uppercase',
+              color: activeTab === tab ? T.green : T.muted,
               background: 'transparent', border: 'none',
-              borderBottom: `2px solid ${activeTab === tab ? T.amber : 'transparent'}`,
+              borderBottom: `2px solid ${activeTab === tab ? T.green : 'transparent'}`,
               cursor: 'pointer', transition: 'color 0.15s', whiteSpace: 'nowrap',
+              textShadow: activeTab === tab ? '0 0 8px rgba(0,255,136,0.5)' : 'none',
             }}
           >
             {tab}
@@ -450,57 +450,35 @@ export default function Protein() {
 
       {activeTab === 'Analysis' && (
         <>
-          {/* All-frames view */}
           {isAll && transResults.length === 3 && (
             <AllFramesView results={transResults} />
           )}
 
-          {/* Single-frame detailed view */}
           {!isAll && mainResult && (
             <>
-              {/* Codon viewer */}
               <Section title={`Codon Viewer — Frame ${mainResult.frame}`}>
                 <CodonViewer protein={mainResult.protein} dnaUsed={mainResult.dna_used} />
               </Section>
 
-              {/* Protein sequence */}
               <Section title={`Protein Sequence — ${mainResult.length} aa`}>
                 <ProteinBar protein={mainResult.protein} />
-                <div style={{ display: 'flex', gap: 20, marginTop: 12, fontSize: 11, color: T.muted }}>
+                <div style={{ display: 'flex', gap: 20, marginTop: 12, fontSize: 10, color: T.muted, fontFamily: 'monospace' }}>
                   <span><span style={{ color: T.amber }}>■</span> Hydrophobic</span>
-                  <span><span style={{ color: T.teal }}>■</span> Polar</span>
-                  <span><span style={{ color: '#9B8FEF' }}>■</span> Charged</span>
-                  <span><span style={{ color: '#993C1D' }}>■</span> Stop</span>
+                  <span><span style={{ color: T.green }}>■</span> Polar</span>
+                  <span><span style={{ color: T.purple }}>■</span> Charged</span>
+                  <span><span style={{ color: T.red }}>■</span> Stop</span>
                 </div>
               </Section>
 
-              {/* Properties */}
               {analyzeResult && (
                 <div style={{ display: 'flex', gap: 12 }}>
-                  <StatCard
-                    label="Mol. Weight (Da)"
-                    value={analyzeResult.mw.toLocaleString()}
-                    color={T.teal}
-                  />
-                  <StatCard
-                    label="Length (aa)"
-                    value={mainResult.length}
-                    color={T.teal}
-                  />
-                  <StatCard
-                    label="Isoelectric Point"
-                    value={analyzeResult.pi.toFixed(1)}
-                    color={T.amber}
-                  />
-                  <StatCard
-                    label="Hydrophobic %"
-                    value={`${analyzeResult.hydrophobic_percent}%`}
-                    color={T.amber}
-                  />
+                  <StatCard label="Mol. Weight (Da)" value={analyzeResult.mw.toLocaleString()} color={T.green} />
+                  <StatCard label="Length (aa)"      value={mainResult.length}                  color={T.green} />
+                  <StatCard label="Isoelectric Point" value={analyzeResult.pi.toFixed(1)}       color={T.amber} />
+                  <StatCard label="Hydrophobic %"    value={`${analyzeResult.hydrophobic_percent}%`} color={T.amber} />
                 </div>
               )}
 
-              {/* AA composition chart */}
               {analyzeResult && (
                 <Section title="Amino Acid Composition">
                   <AaChart

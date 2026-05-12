@@ -4,15 +4,18 @@ import { chatWithAI } from '../api'
 // ─── design tokens ────────────────────────────────────────────────────────────
 
 const T = {
-  bg:      '#0f1117',
-  surface: '#151821',
-  border:  '#1e2130',
-  border2: '#2a2e3e',
-  teal:    '#1D9E75',
-  text:    '#e8e6df',
-  muted:   '#5F5E5A',
-  mid:     '#888780',
-  userBg:  '#1a1f2e',
+  bg:      '#020a06',
+  surface: '#0a1f10',
+  border:  'rgba(0, 255, 136, 0.12)',
+  border2: 'rgba(0, 255, 136, 0.3)',
+  deep:    '#051209',
+  green:   '#00ff88',
+  greenDk: '#004422',
+  amber:   '#ffaa00',
+  text:    '#c8f5d8',
+  dim:     '#4a8a5a',
+  muted:   '#1a4a2a',
+  userBg:  '#0d2614',
 }
 
 // ─── starter message ──────────────────────────────────────────────────────────
@@ -40,7 +43,7 @@ function TypingDots() {
           key={i}
           style={{
             width: 6, height: 6, borderRadius: '50%',
-            background: T.teal,
+            background: T.green,
             display: 'inline-block',
             animation: `helixPulse 1.2s ease-in-out ${i * 0.2}s infinite`,
           }}
@@ -56,10 +59,11 @@ function HelixAvatar() {
   return (
     <div style={{
       width: 28, height: 28, borderRadius: '50%',
-      background: T.teal,
+      background: T.green,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: '#04342C', fontSize: 12, fontWeight: 700,
-      flexShrink: 0,
+      color: '#020a06', fontSize: 11, fontWeight: 700,
+      flexShrink: 0, fontFamily: 'monospace',
+      boxShadow: '0 0 8px rgba(0,255,136,0.4)',
     }}>
       H
     </div>
@@ -77,18 +81,19 @@ function MessageBubble({ msg }) {
         <div style={{ maxWidth: '70%' }}>
           <div style={{
             background: T.userBg,
-            border: `0.5px solid ${T.border2}`,
-            borderRadius: '12px 12px 2px 12px',
+            border: `1px solid ${T.border2}`,
+            borderRadius: '10px 10px 2px 10px',
             padding: '10px 14px',
             color: T.text,
             fontSize: 13,
             lineHeight: 1.55,
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-word',
+            fontFamily: 'monospace',
           }}>
             {msg.text}
           </div>
-          <div style={{ textAlign: 'right', marginTop: 4, fontSize: 10, color: T.muted }}>
+          <div style={{ textAlign: 'right', marginTop: 4, fontSize: 9, color: T.muted, fontFamily: 'monospace' }}>
             {fmtTime(msg.ts)}
           </div>
         </div>
@@ -102,19 +107,20 @@ function MessageBubble({ msg }) {
       <div style={{ maxWidth: '70%' }}>
         <div style={{
           background: T.surface,
-          border: `0.5px solid ${T.border}`,
-          borderRadius: '2px 12px 12px 12px',
+          border: `1px solid ${T.border}`,
+          borderRadius: '2px 10px 10px 10px',
           padding: '10px 14px',
           color: T.text,
           fontSize: 13,
           lineHeight: 1.55,
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
+          fontFamily: 'monospace',
         }}>
           {msg.loading ? <TypingDots /> : msg.text}
         </div>
         {!msg.loading && (
-          <div style={{ marginTop: 4, fontSize: 10, color: T.muted }}>
+          <div style={{ marginTop: 4, fontSize: 9, color: T.muted, fontFamily: 'monospace' }}>
             {fmtTime(msg.ts)}
           </div>
         )}
@@ -173,7 +179,6 @@ export default function AiAssistant({ context = {} }) {
 
   return (
     <>
-      {/* pulse keyframe injected once */}
       <style>{`
         @keyframes helixPulse {
           0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
@@ -183,7 +188,8 @@ export default function AiAssistant({ context = {} }) {
 
       <div style={{
         display: 'flex', flexDirection: 'column',
-        height: 'calc(100vh - 48px)',
+        height: 'calc(100vh - 44px)',
+        paddingTop: 44,
         background: T.bg,
       }}>
 
@@ -192,16 +198,21 @@ export default function AiAssistant({ context = {} }) {
           display: 'flex', alignItems: 'center', gap: 10,
           padding: '14px 20px',
           borderBottom: `1px solid ${T.border}`,
-          background: T.surface,
+          background: 'rgba(2,10,6,0.95)',
+          backdropFilter: 'blur(12px)',
           flexShrink: 0,
         }}>
           <div style={{
-            width: 8, height: 8, borderRadius: '50%',
-            background: T.teal,
-            boxShadow: `0 0 6px ${T.teal}`,
+            width: 7, height: 7, borderRadius: '50%',
+            background: T.green,
+            boxShadow: `0 0 8px ${T.green}`,
           }} />
-          <span style={{ color: T.text, fontSize: 14, fontWeight: 600 }}>Helix AI</span>
-          <span style={{ color: T.muted, fontSize: 12 }}>CRISPR &amp; genomics assistant</span>
+          <span style={{ color: T.green, fontSize: 13, fontWeight: 700, fontFamily: 'monospace', letterSpacing: '1px' }}>
+            HELIX AI
+          </span>
+          <span style={{ color: T.muted, fontSize: 11, fontFamily: 'monospace' }}>
+            CRISPR &amp; genomics assistant
+          </span>
         </div>
 
         {/* ── message history ── */}
@@ -222,7 +233,7 @@ export default function AiAssistant({ context = {} }) {
           display: 'flex', alignItems: 'flex-end', gap: 10,
           padding: '12px 20px',
           borderTop: `1px solid ${T.border}`,
-          background: T.surface,
+          background: 'rgba(2,10,6,0.95)',
           flexShrink: 0,
         }}>
           <textarea
@@ -234,13 +245,13 @@ export default function AiAssistant({ context = {} }) {
             rows={1}
             style={{
               flex: 1,
-              background: T.bg,
-              border: `0.5px solid ${T.border2}`,
-              borderRadius: 6,
+              background: T.deep,
+              border: `1px solid ${T.border}`,
+              borderRadius: 4,
               padding: '8px 12px',
               fontFamily: 'monospace',
-              fontSize: 13,
-              color: T.text,
+              fontSize: 12,
+              color: T.green,
               outline: 'none',
               resize: 'none',
               lineHeight: 1.5,
@@ -257,17 +268,19 @@ export default function AiAssistant({ context = {} }) {
             disabled={loading || !input.trim()}
             style={{
               padding: '8px 18px',
-              borderRadius: 6,
-              background: loading || !input.trim() ? '#0d5a42' : T.teal,
-              color: '#04342C',
-              fontWeight: 600,
-              fontSize: 13,
+              borderRadius: 4,
+              background: loading || !input.trim() ? T.greenDk : T.green,
+              color: '#020a06',
+              fontWeight: 700,
+              fontSize: 12,
+              fontFamily: 'monospace',
               border: 'none',
               cursor: loading || !input.trim() ? 'not-allowed' : 'pointer',
               opacity: loading || !input.trim() ? 0.5 : 1,
               whiteSpace: 'nowrap',
               flexShrink: 0,
               transition: 'opacity 0.15s',
+              letterSpacing: '0.5px',
             }}
           >
             Send

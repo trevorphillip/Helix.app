@@ -4,7 +4,7 @@ import { analyzeGrnas, saveSequence } from '../api'
 import { useHelixStore } from '../store.jsx'
 import DnaHelix3D from '../components/DnaHelix3D'
 
-// ─── constants ───────────────────────────────────────────────────────────────
+// ─── constants ────────────────────────────────────────────────────────────────
 
 const ENZYMES = ['SpCas9', 'SaCas9', 'Cas12a', 'Cpf1']
 const TABS    = ['gRNA Ranking', '2D Tracks', '3D Helix', 'ORFs', 'Variants']
@@ -14,32 +14,34 @@ const EXAMPLE_SEQUENCE =
   'AGGCTAGGCTAGGCTAGGCTAGGCTAGGCTAGGCTAGGCTAGGCTAGGC'
 
 const RISK_STYLE = {
-  low:  { background: '#085041', color: '#5DCAA5' },
-  med:  { background: '#633806', color: '#FAC775' },
-  high: { background: '#6B1D1D', color: '#F09595' },
+  low:  { background: 'rgba(0, 255, 136, 0.1)',  color: '#00ff88', border: '1px solid rgba(0, 255, 136, 0.3)' },
+  med:  { background: 'rgba(255, 170, 0, 0.1)',  color: '#ffaa00', border: '1px solid rgba(255, 170, 0, 0.3)' },
+  high: { background: 'rgba(255, 34, 68, 0.1)',  color: '#ff2244', border: '1px solid rgba(255, 34, 68, 0.3)' },
 }
 
 // ─── design tokens ────────────────────────────────────────────────────────────
 
 const T = {
-  bg:      '#0f1117',
-  surface: '#151821',
-  border:  '#1e2130',
-  deep:    '#111318',
-  border2: '#2a2e3e',
-  teal:    '#1D9E75',
-  amber:   '#EF9F27',
-  text:    '#e8e6df',
-  muted:   '#5F5E5A',
-  mid:     '#888780',
+  bg:      '#020a06',
+  surface: '#0a1f10',
+  border:  'rgba(0, 255, 136, 0.12)',
+  border2: 'rgba(0, 255, 136, 0.3)',
+  deep:    '#051209',
+  green:   '#00ff88',
+  greenDk: '#004422',
+  amber:   '#ffaa00',
+  red:     '#ff2244',
+  text:    '#c8f5d8',
+  dim:     '#4a8a5a',
+  muted:   '#1a4a2a',
 }
 
 // ─── small helpers ────────────────────────────────────────────────────────────
 
 function scoreColor(score) {
-  if (score >= 0.8) return T.teal
-  if (score >= 0.6) return T.amber
-  return '#993C1D'
+  if (score >= 0.8) return '#00ff88'
+  if (score >= 0.6) return '#ffaa00'
+  return '#ff2244'
 }
 
 function useHover() {
@@ -50,7 +52,7 @@ function useHover() {
 function RiskBadge({ risk }) {
   const s = RISK_STYLE[risk] ?? RISK_STYLE.high
   return (
-    <span style={{ ...s, padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 700, textTransform: 'uppercase' }}>
+    <span style={{ ...s, padding: '2px 8px', borderRadius: 4, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', fontFamily: 'monospace' }}>
       {risk}
     </span>
   )
@@ -59,10 +61,10 @@ function RiskBadge({ risk }) {
 function GcBar({ gc }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <div style={{ width: 48, height: 4, borderRadius: 2, background: T.border, overflow: 'hidden' }}>
-        <div style={{ width: `${Math.min(gc, 100)}%`, height: '100%', borderRadius: 2, background: T.teal }} />
+      <div style={{ width: 48, height: 3, borderRadius: 2, background: T.deep, overflow: 'hidden' }}>
+        <div style={{ width: `${Math.min(gc, 100)}%`, height: '100%', borderRadius: 2, background: 'linear-gradient(90deg, #00ff88, #ffaa00)' }} />
       </div>
-      <span style={{ fontSize: 11, color: T.mid }}>{gc.toFixed(0)}%</span>
+      <span style={{ fontSize: 11, color: T.dim, fontFamily: 'monospace' }}>{gc.toFixed(0)}%</span>
     </div>
   )
 }
@@ -71,10 +73,15 @@ function ScoreBar({ score }) {
   const color = scoreColor(score)
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <div style={{ width: 48, height: 4, borderRadius: 2, background: T.border, overflow: 'hidden' }}>
+      <div style={{ width: 48, height: 3, borderRadius: 2, background: T.deep, overflow: 'hidden' }}>
         <div style={{ width: `${Math.min(score * 100, 100)}%`, height: '100%', borderRadius: 2, background: color }} />
       </div>
-      <span style={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 600, color }}>{score.toFixed(3)}</span>
+      <span style={{
+        fontSize: 11, fontFamily: 'monospace', fontWeight: 600, color,
+        textShadow: color === '#00ff88' ? '0 0 6px rgba(0,255,136,0.5)' : color === '#ffaa00' ? '0 0 6px rgba(255,170,0,0.4)' : 'none',
+      }}>
+        {score.toFixed(3)}
+      </span>
     </div>
   )
 }
@@ -85,13 +92,18 @@ function StatCard({ label, value, color }) {
   return (
     <div style={{
       flex: 1,
-      background: T.surface,
-      border: `0.5px solid ${T.border}`,
-      borderRadius: 8,
+      background: 'rgba(10,31,16,0.8)',
+      border: `1px solid ${T.border}`,
+      borderRadius: 6,
       padding: '12px 14px',
     }}>
-      <div style={{ color, fontSize: 20, fontWeight: 500, fontFamily: 'monospace' }}>{value}</div>
-      <div style={{ color: T.muted, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.8px', marginTop: 4 }}>
+      <div style={{
+        color, fontSize: 20, fontWeight: 500, fontFamily: 'monospace',
+        textShadow: color === '#00ff88' ? '0 0 8px rgba(0,255,136,0.4)' : color === '#ffaa00' ? '0 0 8px rgba(255,170,0,0.4)' : 'none',
+      }}>
+        {value}
+      </div>
+      <div style={{ color: T.muted, fontSize: 9, textTransform: 'uppercase', letterSpacing: '2px', marginTop: 4, fontFamily: 'monospace' }}>
         {label}
       </div>
     </div>
@@ -108,19 +120,19 @@ function TableSkeleton() {
     <div style={{ overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
-          <tr style={{ borderBottom: `0.5px solid ${T.border}` }}>
+          <tr style={{ borderBottom: `1px solid ${T.border}` }}>
             {['Rank', 'Sequence', 'GC%', 'Score', 'Risk'].map(h => (
               <th key={h} style={{
-                padding: '8px 12px', color: T.muted, fontSize: 10,
-                textTransform: 'uppercase', letterSpacing: '0.8px',
-                fontWeight: 500, textAlign: 'left',
+                padding: '8px 12px', color: T.muted, fontSize: 9,
+                textTransform: 'uppercase', letterSpacing: '2px',
+                fontWeight: 500, textAlign: 'left', fontFamily: 'monospace',
               }}>{h}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {Array.from({ length: 5 }).map((_, i) => (
-            <tr key={i} className="animate-pulse" style={{ borderBottom: `0.5px solid ${T.border}` }}>
+            <tr key={i} className="animate-pulse" style={{ borderBottom: `1px solid ${T.border}` }}>
               <td style={{ padding: '12px 12px' }}>{bar(16)}</td>
               <td style={{ padding: '12px 12px' }}>{bar(192)}</td>
               <td style={{ padding: '12px 12px' }}>{bar(64)}</td>
@@ -143,7 +155,7 @@ function GrnaTable({ grnas, loading, emptyMessage = 'Run an analysis to see gRNA
     return (
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '64px 0', color: T.muted, fontSize: 13,
+        padding: '64px 0', color: T.muted, fontSize: 12, fontFamily: 'monospace',
       }}>
         {emptyMessage}
       </div>
@@ -151,16 +163,16 @@ function GrnaTable({ grnas, loading, emptyMessage = 'Run an analysis to see gRNA
   }
 
   const thStyle = {
-    padding: '8px 12px', color: T.muted, fontSize: 10,
-    textTransform: 'uppercase', letterSpacing: '0.8px',
-    fontWeight: 500, textAlign: 'left',
+    padding: '8px 12px', color: T.muted, fontSize: 9,
+    textTransform: 'uppercase', letterSpacing: '2px',
+    fontWeight: 500, textAlign: 'left', fontFamily: 'monospace',
   }
 
   return (
     <div style={{ overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
-          <tr style={{ borderBottom: `0.5px solid ${T.border}` }}>
+          <tr style={{ borderBottom: `1px solid ${T.border}` }}>
             <th style={thStyle}>Rank</th>
             <th style={thStyle}>Sequence</th>
             <th style={thStyle}>GC%</th>
@@ -176,12 +188,12 @@ function GrnaTable({ grnas, loading, emptyMessage = 'Run an analysis to see gRNA
             return (
               <tr
                 key={i}
-                style={{ borderBottom: `0.5px solid ${T.border}` }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#1a1f2e' }}
+                style={{ borderBottom: `1px solid ${T.border}` }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,255,136,0.03)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
               >
-                <td style={{ padding: '8px 12px', color: T.muted, fontSize: 13 }}>{i + 1}</td>
-                <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: T.text, fontSize: 13 }}>
+                <td style={{ padding: '8px 12px', color: T.muted, fontSize: 12, fontFamily: 'monospace' }}>{i + 1}</td>
+                <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: T.text, fontSize: 12 }}>
                   {body}<span style={{ color: T.amber }}>{pam}</span>
                 </td>
                 <td style={{ padding: '8px 12px' }}><GcBar gc={row.gc} /></td>
@@ -190,22 +202,23 @@ function GrnaTable({ grnas, loading, emptyMessage = 'Run an analysis to see gRNA
                 <td style={{ padding: '6px 12px' }}>
                   <div style={{ display: 'flex', gap: 4 }}>
                     {[
-                      { label: 'View 3D',      handler: onView3D,    color: T.teal    },
-                      { label: 'Off-target',   handler: onOffTarget, color: '#9B8FEF' },
-                      { label: 'Primers',      handler: onPrimers,   color: T.amber   },
-                      { label: 'Animate cut →', handler: onAnimate,  color: '#F09595' },
+                      { label: 'View 3D',       handler: onView3D,    color: T.green   },
+                      { label: 'Off-target',    handler: onOffTarget, color: '#aa88ff' },
+                      { label: 'Primers',       handler: onPrimers,   color: T.amber   },
+                      { label: 'Animate cut →', handler: onAnimate,   color: T.red     },
                     ].map(({ label, handler, color }) => (
                       <button
                         key={label}
                         onClick={() => handler?.(row)}
                         style={{
-                          padding: '2px 7px', borderRadius: 4, fontSize: 10,
-                          cursor: 'pointer', border: `0.5px solid ${T.border2}`,
-                          color: T.mid, background: 'transparent', whiteSpace: 'nowrap',
+                          padding: '2px 7px', borderRadius: 4, fontSize: 9,
+                          cursor: 'pointer', border: `1px solid ${T.border}`,
+                          color: T.dim, background: 'transparent', whiteSpace: 'nowrap',
+                          fontFamily: 'monospace', letterSpacing: '0.5px',
                           transition: 'color 0.15s, border-color 0.15s',
                         }}
                         onMouseEnter={e => { e.currentTarget.style.color = color; e.currentTarget.style.borderColor = color }}
-                        onMouseLeave={e => { e.currentTarget.style.color = T.mid; e.currentTarget.style.borderColor = T.border2 }}
+                        onMouseLeave={e => { e.currentTarget.style.color = T.dim; e.currentTarget.style.borderColor = T.border }}
                       >
                         {label}
                       </button>
@@ -233,14 +246,15 @@ function ModelStrip() {
     <div style={{
       display: 'flex', alignItems: 'center', gap: 16,
       padding: '8px 12px',
-      borderTop: `0.5px solid ${T.border}`,
+      borderTop: `1px solid ${T.border}`,
     }}>
       {chips.map(({ label, active }) => (
-        <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: T.muted }}>
+        <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, color: T.muted, fontFamily: 'monospace' }}>
           <span style={{
-            width: 6, height: 6, borderRadius: '50%',
-            background: active ? T.teal : T.muted,
+            width: 5, height: 5, borderRadius: '50%',
+            background: active ? T.green : T.muted,
             display: 'inline-block', flexShrink: 0,
+            boxShadow: active ? '0 0 4px rgba(0,255,136,0.6)' : 'none',
           }} />
           {label}
         </div>
@@ -285,7 +299,7 @@ function GcChart({ gcTrack }) {
           </g>
         )
       })}
-      <polyline points={points} fill="none" stroke={T.teal} strokeWidth="1.5" strokeLinejoin="round" />
+      <polyline points={points} fill="none" stroke={T.green} strokeWidth="1.5" strokeLinejoin="round" />
       <line x1={VL} y1={VT + GC_CH} x2={VL + VCW} y2={VT + GC_CH} stroke={T.border} strokeWidth="1" />
       {xTicks.map(pos => (
         <text key={pos} x={xs(pos).toFixed(1)} y={GC_VH - 4} {...labelStyle} textAnchor="middle">{pos}</text>
@@ -321,7 +335,7 @@ function PositionTrack({ grnas, seqLen }) {
         <line key={`g${i}`}
           x1={xs(g.pos).toFixed(1)} y1={19}
           x2={xs(g.pos).toFixed(1)} y2={41}
-          stroke={T.teal} strokeWidth="1.5" opacity="0.85"
+          stroke={T.green} strokeWidth="1.5" opacity="0.85"
         />
       ))}
 
@@ -331,7 +345,7 @@ function PositionTrack({ grnas, seqLen }) {
 
       <line x1={VL} y1={10} x2={VL + 14} y2={10} stroke={T.amber} strokeWidth="1.5" />
       <text x={VL + 18} y={14} {...labelStyle}>PAM</text>
-      <line x1={VL + 52} y1={10} x2={VL + 66} y2={10} stroke={T.teal} strokeWidth="1.5" />
+      <line x1={VL + 52} y1={10} x2={VL + 66} y2={10} stroke={T.green} strokeWidth="1.5" />
       <text x={VL + 70} y={14} {...labelStyle}>gRNA</text>
     </svg>
   )
@@ -349,18 +363,18 @@ function WindowSelector({ grnas, seqLen, onZoom }) {
   const inWindow = grnas.filter(g => g.pos >= start && g.pos <= end).length
 
   const inputStyle = {
-    width: 80, background: T.bg, border: `0.5px solid ${T.border2}`,
-    borderRadius: 6, padding: '4px 8px', fontSize: 12,
-    color: T.text, outline: 'none', fontFamily: 'monospace',
+    width: 80, background: T.deep, border: `1px solid ${T.border}`,
+    borderRadius: 4, padding: '4px 8px', fontSize: 11,
+    color: T.green, outline: 'none', fontFamily: 'monospace',
   }
-  const labelStyle = { fontSize: 11, color: T.muted }
+  const labelStyle = { fontSize: 10, color: T.muted, fontFamily: 'monospace' }
 
   return (
     <div style={{
       display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12,
-      padding: '12px 16px', borderTop: `0.5px solid ${T.border}`,
+      padding: '12px 16px', borderTop: `1px solid ${T.border}`,
     }}>
-      <span style={{ fontSize: 10, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+      <span style={{ fontSize: 9, color: T.muted, textTransform: 'uppercase', letterSpacing: '2px', fontFamily: 'monospace' }}>
         Window
       </span>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -381,16 +395,17 @@ function WindowSelector({ grnas, seqLen, onZoom }) {
         onClick={() => onZoom(start, end)}
         {...zoomEvents}
         style={{
-          padding: '4px 12px', borderRadius: 6, cursor: 'pointer',
-          border: `0.5px solid ${zoomH ? T.teal : T.border2}`,
-          color: zoomH ? T.teal : T.mid,
-          background: 'transparent', fontSize: 12,
+          padding: '4px 12px', borderRadius: 4, cursor: 'pointer',
+          border: `1px solid ${zoomH ? T.green : T.border}`,
+          color: zoomH ? T.green : T.dim,
+          background: zoomH ? 'rgba(0,255,136,0.08)' : 'transparent', fontSize: 11,
+          fontFamily: 'monospace',
           transition: 'color 0.15s, border-color 0.15s',
         }}
       >
         Zoom
       </button>
-      <span style={{ fontSize: 11, color: T.muted }}>
+      <span style={{ fontSize: 10, color: T.muted, fontFamily: 'monospace' }}>
         {inWindow} guide{inWindow !== 1 ? 's' : ''} in window
       </span>
     </div>
@@ -404,7 +419,7 @@ function TracksPanel({ result, seqLen, grnas, onZoom }) {
     return (
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '64px 0', color: T.muted, fontSize: 13,
+        padding: '64px 0', color: T.muted, fontSize: 12, fontFamily: 'monospace',
       }}>
         Run an analysis first to see tracks
       </div>
@@ -412,14 +427,14 @@ function TracksPanel({ result, seqLen, grnas, onZoom }) {
   }
 
   const sectionLabel = {
-    fontSize: 10, color: T.muted,
-    textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 8,
+    fontSize: 9, color: T.muted,
+    textTransform: 'uppercase', letterSpacing: '2px', marginBottom: 8, fontFamily: 'monospace',
   }
   const chartWrap = {
-    borderRadius: 6, overflow: 'hidden',
-    border: `0.5px solid ${T.border}`,
+    borderRadius: 4, overflow: 'hidden',
+    border: `1px solid ${T.border}`,
   }
-  const divider = { borderTop: `0.5px solid ${T.border}` }
+  const divider = { borderTop: `1px solid ${T.border}` }
 
   return (
     <div>
@@ -535,115 +550,126 @@ export default function Sandbox() {
 
       {/* ── sequence input bar ── */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 12,
-        background: T.surface,
-        borderBottom: `1px solid ${T.border}`,
-        padding: '12px 16px',
+        background: 'rgba(2,10,6,0.98)',
+        border: `1px solid ${T.border}`,
+        borderRadius: 8,
+        padding: '10px 16px',
       }}>
-        <input
-          type="text"
-          value={sequence}
-          onChange={e => storeUpdate({ sequence: e.target.value })}
-          onKeyDown={e => e.key === 'Enter' && handleAnalyze()}
-          placeholder="Paste DNA sequence (ACGT)..."
-          spellCheck={false}
-          style={{
-            flex: 1, minWidth: 0,
-            background: T.bg,
-            border: `0.5px solid ${T.border2}`,
-            borderRadius: 6,
-            padding: '7px 12px',
-            fontFamily: 'monospace', fontSize: 13,
-            color: T.teal,
-            outline: 'none',
-          }}
-        />
+        <div style={{ color: T.muted, fontSize: 10, letterSpacing: '2px', fontFamily: 'monospace', marginBottom: 8 }}>
+          // SEQUENCE INPUT
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <input
+            type="text"
+            value={sequence}
+            onChange={e => storeUpdate({ sequence: e.target.value })}
+            onKeyDown={e => e.key === 'Enter' && handleAnalyze()}
+            placeholder="Paste DNA sequence (ACGT)..."
+            spellCheck={false}
+            style={{
+              flex: 1, minWidth: 0,
+              background: T.deep,
+              border: `1px solid rgba(0,255,136,0.15)`,
+              borderRadius: 4,
+              padding: '6px 12px',
+              fontFamily: 'monospace', fontSize: 12,
+              color: T.green,
+              outline: 'none',
+            }}
+          />
 
-        <span style={{
-          fontSize: 11, fontFamily: 'monospace', whiteSpace: 'nowrap',
-          color: seqLen > 20 ? T.teal : T.muted,
-        }}>
-          {seqLen} bp
-        </span>
+          <span style={{
+            fontSize: 11, fontFamily: 'monospace', whiteSpace: 'nowrap',
+            color: seqLen > 20 ? T.green : T.muted,
+          }}>
+            {seqLen} bp
+          </span>
 
-        <select
-          value={enzyme}
-          onChange={e => storeUpdate({ enzyme: e.target.value })}
-          style={{
-            background: T.bg,
-            border: `0.5px solid ${T.border2}`,
-            borderRadius: 6,
-            padding: '7px 8px',
-            fontSize: 12, color: T.text,
-            outline: 'none', cursor: 'pointer',
-          }}
-        >
-          {ENZYMES.map(e => <option key={e} value={e}>{e}</option>)}
-        </select>
+          <select
+            value={enzyme}
+            onChange={e => storeUpdate({ enzyme: e.target.value })}
+            style={{
+              background: T.deep,
+              border: `1px solid ${T.border}`,
+              borderRadius: 4,
+              padding: '6px 8px',
+              fontSize: 11, color: T.text,
+              fontFamily: 'monospace',
+              outline: 'none', cursor: 'pointer',
+            }}
+          >
+            {ENZYMES.map(e => <option key={e} value={e}>{e}</option>)}
+          </select>
 
-        <button
-          onClick={() => storeUpdate({ sequence: EXAMPLE_SEQUENCE })}
-          {...exampleEvents}
-          style={{
-            padding: '6px 12px', borderRadius: 6, cursor: 'pointer',
-            border: `0.5px solid ${exampleH ? T.teal : T.border2}`,
-            color: exampleH ? T.teal : T.mid,
-            background: 'transparent', fontSize: 12,
-            whiteSpace: 'nowrap',
-            transition: 'color 0.15s, border-color 0.15s',
-          }}
-        >
-          Use example
-        </button>
+          <button
+            onClick={() => storeUpdate({ sequence: EXAMPLE_SEQUENCE })}
+            {...exampleEvents}
+            style={{
+              padding: '5px 10px', borderRadius: 4, cursor: 'pointer',
+              border: `1px solid ${exampleH ? T.green : T.border}`,
+              color: exampleH ? T.green : T.dim,
+              background: exampleH ? 'rgba(0,255,136,0.08)' : 'transparent',
+              fontSize: 11, fontFamily: 'monospace',
+              whiteSpace: 'nowrap',
+              transition: 'color 0.15s, border-color 0.15s',
+            }}
+          >
+            Use example
+          </button>
 
-        <button
-          onClick={handleAnalyze}
-          disabled={analyzeDisabled}
-          {...analyzeEvents}
-          style={{
-            padding: '6px 16px', borderRadius: 6,
-            background: analyzeH && !analyzeDisabled ? '#0F6E56' : T.teal,
-            color: '#04342C', fontWeight: 500, fontSize: 13,
-            border: 'none',
-            cursor: analyzeDisabled ? 'not-allowed' : 'pointer',
-            opacity: analyzeDisabled ? 0.5 : 1,
-            whiteSpace: 'nowrap',
-            transition: 'background 0.15s',
-          }}
-        >
-          {loading ? 'Analyzing…' : 'Analyze'}
-        </button>
+          <button
+            onClick={handleAnalyze}
+            disabled={analyzeDisabled}
+            {...analyzeEvents}
+            style={{
+              padding: '6px 16px', borderRadius: 4,
+              background: analyzeDisabled ? T.greenDk : T.green,
+              color: '#020a06', fontWeight: 700, fontSize: 12,
+              fontFamily: 'monospace', letterSpacing: '1px',
+              border: 'none',
+              cursor: analyzeDisabled ? 'not-allowed' : 'pointer',
+              opacity: analyzeDisabled ? 0.5 : 1,
+              whiteSpace: 'nowrap',
+              boxShadow: analyzeDisabled ? 'none' : '0 0 20px rgba(0,255,136,0.3)',
+              transition: 'opacity 0.15s, box-shadow 0.15s',
+            }}
+          >
+            {loading ? 'Analyzing…' : 'Analyze'}
+          </button>
 
-        <button
-          onClick={() => navigate('/orfs')}
-          {...orfsEvents}
-          style={{
-            padding: '6px 12px', borderRadius: 6, cursor: 'pointer',
-            border: `0.5px solid ${orfsH ? T.amber : T.border2}`,
-            color: orfsH ? T.amber : T.mid,
-            background: 'transparent', fontSize: 12,
-            whiteSpace: 'nowrap',
-            transition: 'color 0.15s, border-color 0.15s',
-          }}
-        >
-          View ORFs →
-        </button>
+          <button
+            onClick={() => navigate('/orfs')}
+            {...orfsEvents}
+            style={{
+              padding: '5px 10px', borderRadius: 4, cursor: 'pointer',
+              border: `1px solid ${orfsH ? T.amber : T.border}`,
+              color: orfsH ? T.amber : T.dim,
+              background: orfsH ? 'rgba(255,170,0,0.08)' : 'transparent',
+              fontSize: 11, fontFamily: 'monospace',
+              whiteSpace: 'nowrap',
+              transition: 'color 0.15s, border-color 0.15s',
+            }}
+          >
+            View ORFs →
+          </button>
 
-        <button
-          onClick={() => { setSaveName(''); setShowSaveModal(true) }}
-          disabled={!sequence.trim()}
-          style={{
-            padding: '6px 12px', borderRadius: 6, cursor: sequence.trim() ? 'pointer' : 'not-allowed',
-            border: `0.5px solid ${T.border2}`,
-            color: T.mid, background: 'transparent', fontSize: 12,
-            whiteSpace: 'nowrap', opacity: sequence.trim() ? 1 : 0.4,
-            transition: 'color 0.15s, border-color 0.15s',
-          }}
-          onMouseEnter={e => { if (sequence.trim()) { e.currentTarget.style.color = T.teal; e.currentTarget.style.borderColor = T.teal } }}
-          onMouseLeave={e => { e.currentTarget.style.color = T.mid; e.currentTarget.style.borderColor = T.border2 }}
-        >
-          Save to library
-        </button>
+          <button
+            onClick={() => { setSaveName(''); setShowSaveModal(true) }}
+            disabled={!sequence.trim()}
+            style={{
+              padding: '5px 10px', borderRadius: 4, cursor: sequence.trim() ? 'pointer' : 'not-allowed',
+              border: `1px solid ${T.border}`,
+              color: T.dim, background: 'transparent', fontSize: 11,
+              fontFamily: 'monospace',
+              whiteSpace: 'nowrap', opacity: sequence.trim() ? 1 : 0.4,
+              transition: 'color 0.15s, border-color 0.15s',
+            }}
+            onMouseEnter={e => { if (sequence.trim()) { e.currentTarget.style.color = T.green; e.currentTarget.style.borderColor = T.green } }}
+            onMouseLeave={e => { e.currentTarget.style.color = T.dim; e.currentTarget.style.borderColor = T.border }}
+          >
+            Save to library
+          </button>
+        </div>
       </div>
 
       {/* error bar */}
@@ -651,10 +677,10 @@ export default function Sandbox() {
         <div style={{
           display: 'flex', alignItems: 'center', gap: 8,
           padding: '8px 16px',
-          background: '#1a0808',
-          border: '0.5px solid #4a1010',
+          background: 'rgba(255,34,68,0.08)',
+          border: '1px solid rgba(255,34,68,0.3)',
           borderRadius: 6,
-          color: '#f09595', fontSize: 12,
+          color: T.red, fontSize: 12, fontFamily: 'monospace',
         }}>
           <span style={{ fontWeight: 700 }}>Error:</span>
           {error}
@@ -663,37 +689,39 @@ export default function Sandbox() {
 
       {/* ── stat cards ── */}
       <div style={{ display: 'flex', gap: 12 }}>
-        <StatCard label="PAM sites"       value={pamCount}     color={T.teal}  />
+        <StatCard label="PAM sites"       value={pamCount}     color={T.green}  />
         <StatCard label="gRNAs found"     value={grnas.length} color={T.amber} />
         <StatCard label="Sequence length" value={seqLen || 0}  color={T.text}  />
-        <StatCard label="Off-target hits" value={offTargets}   color={T.teal}  />
+        <StatCard label="Off-target hits" value={offTargets}   color={T.green}  />
       </div>
 
       {/* ── tab panel ── */}
       <div style={{
-        background: T.surface,
-        border: `0.5px solid ${T.border}`,
+        background: 'rgba(5,18,9,0.9)',
+        border: `1px solid ${T.border}`,
         borderRadius: 8,
         overflow: 'hidden',
       }}>
         {/* tab bar */}
         <div style={{
           display: 'flex',
-          background: T.surface,
-          borderBottom: `0.5px solid ${T.border}`,
+          background: 'rgba(2,10,6,0.9)',
+          borderBottom: `1px solid rgba(0,255,136,0.1)`,
         }}>
           {TABS.map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               style={{
-                padding: '8px 14px', fontSize: 12, fontWeight: 400,
-                color: activeTab === tab ? T.amber : T.muted,
+                padding: '8px 14px', fontSize: 10, fontWeight: 400,
+                fontFamily: 'monospace', letterSpacing: '1px', textTransform: 'uppercase',
+                color: activeTab === tab ? T.green : T.muted,
                 background: 'transparent', border: 'none',
-                borderBottom: `2px solid ${activeTab === tab ? T.amber : 'transparent'}`,
+                borderBottom: `2px solid ${activeTab === tab ? T.green : 'transparent'}`,
                 cursor: 'pointer',
                 transition: 'color 0.15s',
                 whiteSpace: 'nowrap',
+                textShadow: activeTab === tab ? '0 0 8px rgba(0,255,136,0.5)' : 'none',
               }}
             >
               {tab}
@@ -718,11 +746,11 @@ export default function Sandbox() {
                 <div style={{ padding: '12px 0 4px', display: 'flex', justifyContent: 'flex-end' }}>
                   <button
                     onClick={() => navigate('/game')}
-                    style={{ background: 'rgba(0,40,20,0.8)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 6, color: '#00ff88', padding: '7px 16px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'monospace', boxShadow: '0 0 10px rgba(0,255,136,0.15)' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#003318' }}
+                    style={{ background: 'rgba(0,40,20,0.8)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 4, color: T.green, padding: '7px 16px', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'monospace', boxShadow: '0 0 10px rgba(0,255,136,0.15)', letterSpacing: '0.5px' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = T.greenDk }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,40,20,0.8)' }}
                   >
-                    🎮 Play in game mode →
+                    ▶ Play in game mode →
                   </button>
                 </div>
               )}
@@ -748,7 +776,7 @@ export default function Sandbox() {
           {activeTab !== 'gRNA Ranking' && activeTab !== '2D Tracks' && activeTab !== '3D Helix' && (
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: '64px 0', color: T.muted, fontSize: 13,
+              padding: '64px 0', color: T.muted, fontSize: 12, fontFamily: 'monospace',
             }}>
               {activeTab} — coming soon
             </div>
@@ -761,7 +789,7 @@ export default function Sandbox() {
         <div
           onClick={() => setShowSaveModal(false)}
           style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             zIndex: 1000,
           }}
@@ -769,13 +797,14 @@ export default function Sandbox() {
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              background: T.surface, border: `0.5px solid ${T.border}`,
-              borderRadius: 10, padding: 24, width: 340,
+              background: T.surface, border: `1px solid ${T.border2}`,
+              borderRadius: 8, padding: 24, width: 340,
               display: 'flex', flexDirection: 'column', gap: 14,
+              boxShadow: '0 0 40px rgba(0,255,136,0.15)',
             }}
           >
-            <div style={{ fontSize: 14, fontWeight: 500, color: T.text }}>
-              Save sequence to library
+            <div style={{ fontSize: 13, fontWeight: 500, color: T.green, fontFamily: 'monospace' }}>
+              // Save sequence to library
             </div>
             <input
               autoFocus
@@ -784,21 +813,21 @@ export default function Sandbox() {
               onKeyDown={e => e.key === 'Enter' && handleSaveToLibrary()}
               placeholder="Sequence name (optional)"
               style={{
-                background: T.bg, border: `0.5px solid ${T.border2}`, borderRadius: 6,
-                padding: '8px 12px', fontSize: 13, color: T.text,
+                background: T.deep, border: `1px solid ${T.border}`, borderRadius: 4,
+                padding: '8px 12px', fontSize: 12, color: T.green,
                 outline: 'none', fontFamily: 'monospace',
               }}
             />
-            <div style={{ fontSize: 11, color: T.muted }}>
+            <div style={{ fontSize: 11, color: T.muted, fontFamily: 'monospace' }}>
               {seqLen.toLocaleString()} bp will be saved
             </div>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button
                 onClick={() => setShowSaveModal(false)}
                 style={{
-                  padding: '7px 16px', borderRadius: 6, fontSize: 12,
-                  border: `0.5px solid ${T.border2}`, color: T.mid,
-                  background: 'transparent', cursor: 'pointer',
+                  padding: '7px 16px', borderRadius: 4, fontSize: 11,
+                  border: `1px solid ${T.border}`, color: T.dim,
+                  background: 'transparent', cursor: 'pointer', fontFamily: 'monospace',
                 }}
               >
                 Cancel
@@ -807,9 +836,9 @@ export default function Sandbox() {
                 onClick={handleSaveToLibrary}
                 disabled={saving}
                 style={{
-                  padding: '7px 16px', borderRadius: 6, fontSize: 12,
-                  background: T.teal, color: '#04342C',
-                  border: 'none', fontWeight: 500,
+                  padding: '7px 16px', borderRadius: 4, fontSize: 11,
+                  background: saving ? T.greenDk : T.green, color: '#020a06',
+                  border: 'none', fontWeight: 700, fontFamily: 'monospace',
                   cursor: saving ? 'not-allowed' : 'pointer',
                   opacity: saving ? 0.6 : 1,
                 }}
@@ -825,11 +854,11 @@ export default function Sandbox() {
       {toast && (
         <div style={{
           position: 'fixed', bottom: 24, right: 24, zIndex: 2000,
-          background: toast.includes('failed') ? '#3D1515' : '#0F2E1F',
-          border: `0.5px solid ${toast.includes('failed') ? '#F09595' : T.teal}`,
-          borderRadius: 8, padding: '10px 16px',
-          color: toast.includes('failed') ? '#F09595' : T.teal,
-          fontSize: 13, fontWeight: 500,
+          background: toast.includes('failed') ? 'rgba(255,34,68,0.1)' : 'rgba(0,255,136,0.08)',
+          border: `1px solid ${toast.includes('failed') ? 'rgba(255,34,68,0.4)' : 'rgba(0,255,136,0.4)'}`,
+          borderRadius: 6, padding: '10px 16px',
+          color: toast.includes('failed') ? T.red : T.green,
+          fontSize: 12, fontWeight: 500, fontFamily: 'monospace',
           boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
           animation: 'fadeIn 0.2s ease',
         }}>

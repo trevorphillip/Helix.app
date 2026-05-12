@@ -3,15 +3,15 @@ import { useHelixStore } from '../store.jsx'
 import CrisprAnimation from '../components/CrisprAnimation'
 
 const T = {
-  bg:      '#0f1117',
-  surface: '#151821',
-  border:  '#1e2130',
-  border2: '#2a2e3e',
-  teal:    '#1D9E75',
-  amber:   '#EF9F27',
-  text:    '#e8e6df',
-  muted:   '#5F5E5A',
-  mid:     '#888780',
+  bg:      '#020a06',
+  surface: '#0a1f10',
+  border:  'rgba(0, 255, 136, 0.12)',
+  deep:    '#051209',
+  green:   '#00ff88',
+  amber:   '#ffaa00',
+  text:    '#c8f5d8',
+  dim:     '#4a8a5a',
+  muted:   '#1a4a2a',
 }
 
 const PHASE_EXPLANATIONS = [
@@ -45,12 +45,12 @@ function PhaseCard({ phase, text }) {
   return (
     <div style={{
       padding: '12px 16px',
-      background: T.bg,
-      border: `0.5px solid ${T.border}`,
+      background: T.deep,
+      border: `1px solid ${T.border}`,
       borderRadius: 6,
     }}>
-      <div style={{ fontSize: 12, fontWeight: 600, color: T.teal, marginBottom: 5 }}>{phase}</div>
-      <div style={{ fontSize: 13, color: T.mid, lineHeight: 1.6 }}>{text}</div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: T.green, marginBottom: 5, fontFamily: 'monospace' }}>{phase}</div>
+      <div style={{ fontSize: 12, color: T.dim, lineHeight: 1.6, fontFamily: 'monospace' }}>{text}</div>
     </div>
   )
 }
@@ -68,13 +68,13 @@ export default function Animation() {
 
       {/* header */}
       <div>
-        <h1 style={{ margin: 0, fontSize: 20, fontWeight: 600, color: T.text }}>
+        <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: T.green, fontFamily: 'monospace', letterSpacing: '1px', textShadow: '0 0 12px rgba(0,255,136,0.4)' }}>
           CRISPR-Cas9 Mechanism — Live Animation
         </h1>
-        <p style={{ margin: '6px 0 0', fontSize: 13, color: T.muted }}>
+        <p style={{ margin: '6px 0 0', fontSize: 12, color: T.muted, fontFamily: 'monospace' }}>
           Visualizing your gRNA:{' '}
-          <span style={{ fontFamily: 'monospace', color: T.teal }}>{displaySeq}</span>
-          <span style={{ fontFamily: 'monospace', color: T.amber }}>{guide.slice(20)}</span>
+          <span style={{ color: T.green }}>{displaySeq}</span>
+          <span style={{ color: T.amber }}>{guide.slice(20)}</span>
           {' '}&mdash; cut at position{' '}
           <span style={{ color: T.text }}>{cutPosition}</span>
         </p>
@@ -83,7 +83,7 @@ export default function Animation() {
       {/* animation canvas */}
       <div style={{
         background: T.surface,
-        border: `0.5px solid ${T.border}`,
+        border: `1px solid ${T.border}`,
         borderRadius: 8,
         overflow: 'hidden',
         height: 560,
@@ -94,7 +94,7 @@ export default function Animation() {
       {/* expandable explanation */}
       <div style={{
         background: T.surface,
-        border: `0.5px solid ${T.border}`,
+        border: `1px solid ${T.border}`,
         borderRadius: 8,
         overflow: 'hidden',
       }}>
@@ -105,16 +105,17 @@ export default function Animation() {
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '12px 16px',
             background: 'transparent', border: 'none', cursor: 'pointer',
-            color: T.text, fontSize: 13, fontWeight: 500,
+            color: T.green, fontSize: 12, fontWeight: 700, fontFamily: 'monospace',
+            letterSpacing: '0.5px',
           }}
         >
-          <span>What&apos;s happening?</span>
-          <span style={{ color: T.muted, fontSize: 16, lineHeight: 1 }}>{expanded ? '−' : '+'}</span>
+          <span>// What&apos;s happening?</span>
+          <span style={{ color: T.dim, fontSize: 16, lineHeight: 1 }}>{expanded ? '−' : '+'}</span>
         </button>
 
         {expanded && (
           <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <p style={{ margin: '0 0 8px', fontSize: 13, color: T.mid, lineHeight: 1.6 }}>
+            <p style={{ margin: '0 0 8px', fontSize: 12, color: T.dim, lineHeight: 1.6, fontFamily: 'monospace' }}>
               CRISPR-Cas9 is a bacterial immune system repurposed as a precision gene-editing tool.
               A guide RNA (gRNA) directs the Cas9 protein to a specific DNA sequence, where it makes
               a double-strand cut. The cell then repairs the break — often imperfectly — allowing

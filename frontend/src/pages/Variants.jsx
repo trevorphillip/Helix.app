@@ -2,27 +2,30 @@ import { useState, useMemo } from 'react'
 import { compareVariants } from '../api'
 
 const T = {
-  bg:      '#0f1117',
-  surface: '#151821',
-  border:  '#1e2130',
-  border2: '#2a2e3e',
-  teal:    '#1D9E75',
-  amber:   '#EF9F27',
-  text:    '#e8e6df',
-  muted:   '#5F5E5A',
-  mid:     '#888780',
+  bg:      '#020a06',
+  surface: '#0a1f10',
+  border:  'rgba(0, 255, 136, 0.12)',
+  border2: 'rgba(0, 255, 136, 0.3)',
+  deep:    '#051209',
+  green:   '#00ff88',
+  greenDk: '#004422',
+  amber:   '#ffaa00',
+  red:     '#ff2244',
+  text:    '#c8f5d8',
+  dim:     '#4a8a5a',
+  muted:   '#1a4a2a',
 }
 
 const TYPE_STYLE = {
-  SNP: { background: '#3D1515', color: '#F09595' },
-  INS: { background: '#0D2E1F', color: '#5DCAA5' },
-  DEL: { background: '#2E1F0A', color: '#FAC775' },
+  SNP: { background: 'rgba(255,34,68,0.12)',  color: '#ff2244' },
+  INS: { background: 'rgba(0,255,136,0.1)',   color: '#00ff88' },
+  DEL: { background: 'rgba(255,170,0,0.1)',   color: '#ffaa00' },
 }
 
 const IMPACT_STYLE = {
-  disrupts_pam:  { background: '#6B1D1D', color: '#F09595' },
-  disrupts_seed: { background: '#633806', color: '#FAC775' },
-  safe:          { background: '#085041', color: '#5DCAA5' },
+  disrupts_pam:  { background: 'rgba(255,34,68,0.1)',   color: '#ff2244' },
+  disrupts_seed: { background: 'rgba(255,170,0,0.1)',   color: '#ffaa00' },
+  safe:          { background: 'rgba(0,255,136,0.1)',   color: '#00ff88' },
 }
 
 const SANITIZE = s => (s || '').toUpperCase().replace(/[^ACGT]/g, '')
@@ -33,11 +36,11 @@ function useHover() {
 }
 
 function TypeBadge({ type }) {
-  const s = TYPE_STYLE[type] ?? { background: T.border, color: T.mid }
+  const s = TYPE_STYLE[type] ?? { background: T.border, color: T.dim }
   return (
     <span style={{
       ...s, padding: '2px 7px', borderRadius: 4,
-      fontSize: 11, fontWeight: 700,
+      fontSize: 10, fontWeight: 700, fontFamily: 'monospace',
     }}>
       {type}
     </span>
@@ -49,7 +52,7 @@ function ImpactBadge({ impact }) {
   return (
     <span style={{
       ...s, padding: '2px 7px', borderRadius: 4,
-      fontSize: 11, fontWeight: 600,
+      fontSize: 10, fontWeight: 600, fontFamily: 'monospace',
     }}>
       {impact.replace(/_/g, ' ')}
     </span>
@@ -81,7 +84,6 @@ function DiffViewer({ refSeq, qrySeq, variantMap }) {
         const end = Math.min(start + CHUNK, maxLen)
         return (
           <div key={start} style={{ marginBottom: 8 }}>
-            {/* reference row */}
             <div style={{ display: 'flex', alignItems: 'baseline', lineHeight: 1.7 }}>
               <span style={posStyle}>{start}</span>
               <span>
@@ -90,12 +92,11 @@ function DiffViewer({ refSeq, qrySeq, variantMap }) {
                   const v = variantMap[pos]
                   const ch = pos < refSeq.length ? refSeq[pos] : '-'
                   return (
-                    <span key={i} style={v ? TYPE_STYLE[v.type] : { color: T.mid }}>{ch}</span>
+                    <span key={i} style={v ? TYPE_STYLE[v.type] : { color: T.dim }}>{ch}</span>
                   )
                 })}
               </span>
             </div>
-            {/* query row */}
             <div style={{ display: 'flex', alignItems: 'baseline', lineHeight: 1.7 }}>
               <span style={{ ...posStyle, visibility: 'hidden' }}>0</span>
               <span>
@@ -104,7 +105,7 @@ function DiffViewer({ refSeq, qrySeq, variantMap }) {
                   const v = variantMap[pos]
                   const ch = pos < qrySeq.length ? qrySeq[pos] : '-'
                   return (
-                    <span key={i} style={v ? TYPE_STYLE[v.type] : { color: T.mid }}>{ch}</span>
+                    <span key={i} style={v ? TYPE_STYLE[v.type] : { color: T.dim }}>{ch}</span>
                   )
                 })}
               </span>
@@ -155,22 +156,22 @@ export default function Variants() {
   const textareaStyle = {
     width: '100%',
     minHeight: 120,
-    background: T.bg,
-    border: `0.5px solid ${T.border2}`,
-    borderRadius: 6,
+    background: T.deep,
+    border: `1px solid ${T.border}`,
+    borderRadius: 4,
     padding: '8px 12px',
     fontFamily: 'monospace',
     fontSize: 12,
-    color: T.text,
+    color: T.green,
     outline: 'none',
     resize: 'vertical',
     boxSizing: 'border-box',
   }
 
   const thStyle = {
-    padding: '8px 12px', color: T.muted, fontSize: 10,
-    textTransform: 'uppercase', letterSpacing: '0.8px',
-    fontWeight: 500, textAlign: 'left',
+    padding: '8px 12px', color: T.muted, fontSize: 9,
+    textTransform: 'uppercase', letterSpacing: '2px',
+    fontWeight: 500, textAlign: 'left', fontFamily: 'monospace',
   }
 
   return (
@@ -178,7 +179,7 @@ export default function Variants() {
 
       {/* Input panel */}
       <div style={{
-        background: T.surface, border: `0.5px solid ${T.border}`,
+        background: T.surface, border: `1px solid ${T.border}`,
         borderRadius: 8, padding: 16,
       }}>
         <div style={{
@@ -189,8 +190,8 @@ export default function Variants() {
         }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <span style={{
-              fontSize: 10, color: T.muted,
-              textTransform: 'uppercase', letterSpacing: '0.8px',
+              fontSize: 9, color: T.muted,
+              textTransform: 'uppercase', letterSpacing: '2px', fontFamily: 'monospace',
             }}>
               Reference Sequence
             </span>
@@ -208,10 +209,10 @@ export default function Variants() {
             disabled={compareDisabled}
             {...compareEvents}
             style={{
-              padding: '8px 16px', borderRadius: 6,
-              background: compareH && !compareDisabled ? '#0F6E56' : T.teal,
-              color: '#04342C', fontWeight: 500, fontSize: 13,
-              border: 'none',
+              padding: '8px 16px', borderRadius: 4,
+              background: compareH && !compareDisabled ? T.greenDk : T.green,
+              color: '#020a06', fontWeight: 700, fontSize: 12,
+              fontFamily: 'monospace', border: 'none',
               cursor: compareDisabled ? 'not-allowed' : 'pointer',
               opacity: compareDisabled ? 0.5 : 1,
               whiteSpace: 'nowrap',
@@ -223,8 +224,8 @@ export default function Variants() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <span style={{
-              fontSize: 10, color: T.muted,
-              textTransform: 'uppercase', letterSpacing: '0.8px',
+              fontSize: 9, color: T.muted,
+              textTransform: 'uppercase', letterSpacing: '2px', fontFamily: 'monospace',
             }}>
               Query Sequence
             </span>
@@ -239,46 +240,43 @@ export default function Variants() {
         </div>
       </div>
 
-      {/* Error */}
       {error && (
         <div style={{
-          padding: '8px 16px', background: '#1a0808',
-          border: '0.5px solid #4a1010', borderRadius: 6,
-          color: '#f09595', fontSize: 12,
+          padding: '8px 16px', background: 'rgba(255,34,68,0.08)',
+          border: '1px solid rgba(255,34,68,0.3)', borderRadius: 6,
+          color: T.red, fontSize: 12, fontFamily: 'monospace',
         }}>
           <span style={{ fontWeight: 700 }}>Error: </span>{error}
         </div>
       )}
 
-      {/* Empty state */}
       {!result && !error && (
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          padding: '48px 0', color: T.muted, fontSize: 13,
-          background: T.surface, border: `0.5px solid ${T.border}`,
-          borderRadius: 8,
+          padding: '48px 0', color: T.muted, fontSize: 12,
+          background: T.surface, border: `1px solid ${T.border}`,
+          borderRadius: 8, fontFamily: 'monospace',
         }}>
           Paste a reference and query sequence to compare variants
         </div>
       )}
 
-      {/* Stat row */}
       {result && (
         <div style={{ display: 'flex', gap: 12 }}>
           {[
-            { label: 'SNPs',       count: result.snp_count, color: T.amber    },
-            { label: 'Insertions', count: result.ins_count, color: T.teal     },
-            { label: 'Deletions',  count: result.del_count, color: '#F09595'  },
+            { label: 'SNPs',       count: result.snp_count, color: T.amber  },
+            { label: 'Insertions', count: result.ins_count, color: T.green  },
+            { label: 'Deletions',  count: result.del_count, color: T.red    },
           ].map(({ label, count, color }) => (
             <div key={label} style={{
-              flex: 1, background: T.surface, border: `0.5px solid ${T.border}`,
-              borderRadius: 8, padding: '12px 16px',
+              flex: 1, background: T.surface, border: `1px solid ${T.border}`,
+              borderRadius: 6, padding: '12px 16px',
               display: 'flex', alignItems: 'center', gap: 12,
             }}>
               <span style={{ fontSize: 22, fontFamily: 'monospace', color, fontWeight: 500 }}>
                 {count}
               </span>
-              <span style={{ fontSize: 10, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+              <span style={{ fontSize: 9, color: T.muted, textTransform: 'uppercase', letterSpacing: '2px', fontFamily: 'monospace' }}>
                 {label}
               </span>
             </div>
@@ -286,20 +284,19 @@ export default function Variants() {
         </div>
       )}
 
-      {/* Diff viewer */}
       {result && (
         <div style={{
-          background: T.surface, border: `0.5px solid ${T.border}`,
+          background: T.surface, border: `1px solid ${T.border}`,
           borderRadius: 8, overflow: 'hidden',
         }}>
           <div style={{
-            padding: '8px 16px', borderBottom: `0.5px solid ${T.border}`,
+            padding: '8px 16px', borderBottom: `1px solid ${T.border}`,
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
-            <span style={{ fontSize: 10, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+            <span style={{ fontSize: 9, color: T.muted, textTransform: 'uppercase', letterSpacing: '2px', fontFamily: 'monospace' }}>
               Inline Diff
             </span>
-            <div style={{ display: 'flex', gap: 14, fontSize: 11, color: T.muted }}>
+            <div style={{ display: 'flex', gap: 14, fontSize: 10, color: T.muted, fontFamily: 'monospace' }}>
               {[
                 ['SNP', TYPE_STYLE.SNP.color],
                 ['INS', TYPE_STYLE.INS.color],
@@ -318,21 +315,20 @@ export default function Variants() {
         </div>
       )}
 
-      {/* Variant table */}
       {result && result.variants.length > 0 && (
         <div style={{
-          background: T.surface, border: `0.5px solid ${T.border}`,
+          background: T.surface, border: `1px solid ${T.border}`,
           borderRadius: 8, overflow: 'hidden',
         }}>
-          <div style={{ padding: '8px 16px', borderBottom: `0.5px solid ${T.border}` }}>
-            <span style={{ fontSize: 10, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          <div style={{ padding: '8px 16px', borderBottom: `1px solid ${T.border}` }}>
+            <span style={{ fontSize: 9, color: T.muted, textTransform: 'uppercase', letterSpacing: '2px', fontFamily: 'monospace' }}>
               Variant Table — {result.total} variants
             </span>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ borderBottom: `0.5px solid ${T.border}` }}>
+                <tr style={{ borderBottom: `1px solid ${T.border}` }}>
                   <th style={thStyle}>Position</th>
                   <th style={thStyle}>Type</th>
                   <th style={thStyle}>Ref</th>
@@ -344,11 +340,11 @@ export default function Variants() {
                 {result.variants.map(v => (
                   <tr
                     key={v.pos}
-                    style={{ borderBottom: `0.5px solid ${T.border}` }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#1a1f2e' }}
+                    style={{ borderBottom: `1px solid ${T.border}` }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,255,136,0.03)' }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                   >
-                    <td style={{ padding: '8px 12px', color: T.mid, fontFamily: 'monospace', fontSize: 12 }}>
+                    <td style={{ padding: '8px 12px', color: T.dim, fontFamily: 'monospace', fontSize: 12 }}>
                       {v.pos}
                     </td>
                     <td style={{ padding: '8px 12px' }}><TypeBadge type={v.type} /></td>
@@ -367,13 +363,12 @@ export default function Variants() {
         </div>
       )}
 
-      {/* Identical sequences */}
       {result && result.variants.length === 0 && (
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          padding: '48px 0', color: T.muted, fontSize: 13,
-          background: T.surface, border: `0.5px solid ${T.border}`,
-          borderRadius: 8,
+          padding: '48px 0', color: T.muted, fontSize: 12,
+          background: T.surface, border: `1px solid ${T.border}`,
+          borderRadius: 8, fontFamily: 'monospace',
         }}>
           Sequences are identical — no variants found
         </div>
