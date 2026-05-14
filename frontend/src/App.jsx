@@ -12,6 +12,7 @@ import Library from './pages/Library'
 import Animation from './pages/Animation'
 import CrisprGame from './pages/CrisprGame'
 import OutcomeSimulator from './pages/OutcomeSimulator'
+import ExportCenter from './pages/ExportCenter'
 import LoadingScreen from './components/LoadingScreen'
 import AmbientBackground from './components/AmbientBackground'
 
@@ -26,6 +27,7 @@ const NAV_LINKS = [
   { to: '/primers',    label: 'Primers'      },
   { to: '/animation',  label: 'Animation'    },
   { to: '/outcome',    label: 'Outcome'      },
+  { to: '/export',     label: 'Export'       },
   { to: '/game',       label: 'Game'         },
   { to: '/medprep',    label: 'Med-Prep'     },
   { to: '/models',     label: 'Models'       },
@@ -200,6 +202,7 @@ export default function App() {
                   <Route path="/primers"   element={<PrimerDesigner />} />
                   <Route path="/animation" element={<Animation />} />
                   <Route path="/outcome"   element={<OutcomeSimulator />} />
+                  <Route path="/export"    element={<ExportCenter />} />
                   <Route path="/medprep"   element={<Placeholder name="Med-Prep" />} />
                   <Route path="/models"    element={<Placeholder name="Models" />} />
                   <Route path="/sessions"  element={<Placeholder name="Sessions" />} />

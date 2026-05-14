@@ -750,7 +750,15 @@ export default function Sandbox() {
                 onOutcome={handleOutcome}
               />
               {grnas.length > 0 && (
-                <div style={{ padding: '12px 0 4px', display: 'flex', justifyContent: 'flex-end' }}>
+                <div style={{ padding: '12px 0 4px', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                  <button
+                    onClick={() => navigate('/export')}
+                    style={{ background: 'rgba(0,40,20,0.8)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 4, color: T.green, padding: '7px 16px', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'monospace', boxShadow: '0 0 10px rgba(0,255,136,0.1)', letterSpacing: '0.5px' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = T.greenDk }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,40,20,0.8)' }}
+                  >
+                    ⬇ Export →
+                  </button>
                   <button
                     onClick={() => navigate('/game')}
                     style={{ background: 'rgba(0,40,20,0.8)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 4, color: T.green, padding: '7px 16px', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'monospace', boxShadow: '0 0 10px rgba(0,255,136,0.15)', letterSpacing: '0.5px' }}
