@@ -39,8 +39,8 @@ const T = {
 // ─── small helpers ────────────────────────────────────────────────────────────
 
 function scoreColor(score) {
-  if (score >= 0.8) return '#00ff88'
-  if (score >= 0.6) return '#ffaa00'
+  if (score >= 0.85) return '#00ff88'
+  if (score >= 0.70) return '#ffaa00'
   return '#ff2244'
 }
 
