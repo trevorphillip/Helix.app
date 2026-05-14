@@ -61,6 +61,15 @@ export const designPrimers = (sequence, cutPosition, editType, editSequence, edi
     edit_sequence: editSequence, edit_position: editPosition, edit_length: editLength,
   }).then(r => r.data)
 
+export const simulateOutcome = (sequence, cutPosition, nSimulations = 10000, cellType = 'dividing', hasDonor = false) =>
+  api.post('/api/outcome/simulate', {
+    sequence,
+    cut_position:   cutPosition,
+    n_simulations:  nSimulations,
+    cell_type:      cellType,
+    has_donor:      hasDonor,
+  }).then(r => r.data)
+
 export const chatWithAI = (message, context = {}) => {
   const body = {
     message,

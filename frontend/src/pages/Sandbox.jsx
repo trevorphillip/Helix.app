@@ -148,7 +148,7 @@ function TableSkeleton() {
 
 // ─── grna table ───────────────────────────────────────────────────────────────
 
-function GrnaTable({ grnas, loading, emptyMessage = 'Run an analysis to see gRNA rankings', onView3D, onOffTarget, onPrimers, onAnimate }) {
+function GrnaTable({ grnas, loading, emptyMessage = 'Run an analysis to see gRNA rankings', onView3D, onOffTarget, onPrimers, onAnimate, onOutcome }) {
   if (loading) return <TableSkeleton />
 
   if (!grnas.length) {
@@ -202,10 +202,11 @@ function GrnaTable({ grnas, loading, emptyMessage = 'Run an analysis to see gRNA
                 <td style={{ padding: '6px 12px' }}>
                   <div style={{ display: 'flex', gap: 4 }}>
                     {[
-                      { label: 'View 3D',       handler: onView3D,    color: T.green   },
-                      { label: 'Off-target',    handler: onOffTarget, color: '#aa88ff' },
-                      { label: 'Primers',       handler: onPrimers,   color: T.amber   },
-                      { label: 'Animate cut →', handler: onAnimate,   color: T.red     },
+                      { label: 'View 3D',            handler: onView3D,    color: T.green   },
+                      { label: 'Off-target',         handler: onOffTarget, color: '#aa88ff' },
+                      { label: 'Primers',            handler: onPrimers,   color: T.amber   },
+                      { label: 'Animate cut →',      handler: onAnimate,   color: T.red     },
+                      { label: 'Predict outcomes →', handler: onOutcome,   color: '#00ccff' },
                     ].map(({ label, handler, color }) => (
                       <button
                         key={label}
@@ -517,6 +518,11 @@ export default function Sandbox() {
     navigate('/animation')
   }
 
+  function handleOutcome(grna) {
+    storeUpdate({ selectedGuide: grna })
+    navigate('/outcome')
+  }
+
   async function handleSaveToLibrary() {
     if (!sequence.trim()) return
     setSaving(true)
@@ -741,6 +747,7 @@ export default function Sandbox() {
                 onOffTarget={handleOffTarget}
                 onPrimers={handlePrimers}
                 onAnimate={handleAnimate}
+                onOutcome={handleOutcome}
               />
               {grnas.length > 0 && (
                 <div style={{ padding: '12px 0 4px', display: 'flex', justifyContent: 'flex-end' }}>

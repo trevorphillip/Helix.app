@@ -11,6 +11,7 @@ import PrimerDesigner from './pages/PrimerDesigner'
 import Library from './pages/Library'
 import Animation from './pages/Animation'
 import CrisprGame from './pages/CrisprGame'
+import OutcomeSimulator from './pages/OutcomeSimulator'
 import LoadingScreen from './components/LoadingScreen'
 import AmbientBackground from './components/AmbientBackground'
 
@@ -24,6 +25,7 @@ const NAV_LINKS = [
   { to: '/offtarget',  label: 'Off-target'   },
   { to: '/primers',    label: 'Primers'      },
   { to: '/animation',  label: 'Animation'    },
+  { to: '/outcome',    label: 'Outcome'      },
   { to: '/game',       label: 'Game'         },
   { to: '/medprep',    label: 'Med-Prep'     },
   { to: '/models',     label: 'Models'       },
@@ -197,6 +199,7 @@ export default function App() {
                   <Route path="/offtarget" element={<OffTarget />} />
                   <Route path="/primers"   element={<PrimerDesigner />} />
                   <Route path="/animation" element={<Animation />} />
+                  <Route path="/outcome"   element={<OutcomeSimulator />} />
                   <Route path="/medprep"   element={<Placeholder name="Med-Prep" />} />
                   <Route path="/models"    element={<Placeholder name="Models" />} />
                   <Route path="/sessions"  element={<Placeholder name="Sessions" />} />

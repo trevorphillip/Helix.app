@@ -332,7 +332,7 @@ function buildGrna(guide) {
 
 // ─── component ────────────────────────────────────────────────────────────────
 
-export default function DnaHelix3D({ sequence, grnas = [], orfs = [], selectedGrna = null }) {
+export default function DnaHelix3D({ sequence, grnas = [], orfs = [], selectedGrna = null, outcomeLabels = null }) {
   const mountRef         = useRef(null)
   const rendererRef      = useRef(null)
   const sceneRef         = useRef(null)
@@ -1032,6 +1032,39 @@ export default function DnaHelix3D({ sequence, grnas = [], orfs = [], selectedGr
     <div style={{ position: 'relative', width: '100%', height: 500, background: '#020a06', borderRadius: 6, overflow: 'hidden' }}>
       <style>{`@keyframes bpBlink { 0%,100%{opacity:1} 50%{opacity:0} }`}</style>
       <div ref={mountRef} style={{ width: '100%', height: '100%' }} />
+
+      {/* Outcome labels — visible during repair/complete phases */}
+      {outcomeLabels && (phase === 'repair' || phase === 'complete') && (
+        <div style={{
+          position:  'absolute',
+          top:       54,
+          right:     12,
+          display:   'flex',
+          flexDirection: 'column',
+          gap:       5,
+          animation: 'bpBlink 0.4s',
+        }}>
+          <div style={{ fontSize: 9, color: '#1a4a2a', fontFamily: 'monospace', letterSpacing: '1px', marginBottom: 2 }}>
+            // TOP OUTCOMES
+          </div>
+          {outcomeLabels.map((l, i) => (
+            <div key={i} style={{
+              fontFamily:   'monospace',
+              fontSize:     11,
+              fontWeight:   700,
+              color:        l.color,
+              background:   'rgba(2,10,6,0.9)',
+              border:       `1px solid ${l.color}44`,
+              borderRadius: 4,
+              padding:      '3px 8px',
+              whiteSpace:   'nowrap',
+              boxShadow:    `0 0 8px ${l.color}22`,
+            }}>
+              {l.label}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Top-left: render mode + animation controls */}
       <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>

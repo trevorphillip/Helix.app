@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { useHelixStore } from '../store.jsx'
+import { simulateOutcome } from '../api.js'
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
@@ -175,6 +176,7 @@ export default function CrisprGame() {
   const [tooltip,      setTooltip]      = useState(null)
   const [hovering,     setHovering]     = useState(false)
   const [resultPanel,  setResultPanel]  = useState(null)
+  const [outcomePanel, setOutcomePanel] = useState(null)
   const [cutLog,       setCutLog]       = useState([])
   const [flashBorder,  setFlashBorder]  = useState(false)
   const [showInst,     setShowInst]     = useState(true)
@@ -518,11 +520,29 @@ export default function CrisprGame() {
       if (grna.score >= 0.8) setCritHits(prev => prev + 1)
       setCutLog(prev => [{ pos: grna.pos, score: grna.score, xp }, ...prev].slice(0, 5))
       setResultPanel({ grna, xp })
+
+      // run outcome simulation asynchronously — no donor, 1000 sims for speed
+      const cutPos = grna.pos + 17
+      simulateOutcome(seq, cutPos, 1000, 'dividing', false)
+        .then(res => {
+          const fsPercent = res.summary.frameshift_percent
+          const bonusXp   = fsPercent > 80 ? 50 : fsPercent > 60 ? 25 : 0
+          if (bonusXp > 0) setTotalXP(prev => prev + bonusXp)
+          setOutcomePanel({
+            fsPercent:       fsPercent,
+            bonusXp:         bonusXp,
+            mostLikely:      res.summary.most_common_outcome,
+            mostLikelySize:  res.summary.most_common_size,
+            mostLikelyProb:  res.summary.most_common_prob,
+          })
+        })
+        .catch(() => {})
     }, 1800)
 
     // step 5 — cleanup (3800ms)
     addTimer(() => {
       setResultPanel(null)
+      setOutcomePanel(null)
       const scene = sceneRef.current
       if (scene && cas9Ref.current) { scene.remove(cas9Ref.current); disposeObj(cas9Ref.current); cas9Ref.current = null }
       firingRef.current = false
@@ -692,6 +712,47 @@ export default function CrisprGame() {
             <span style={{ background: RISK_BG[resultPanel.grna.risk] ?? '#6B1D1D', color: RISK_COLOR[resultPanel.grna.risk] ?? '#F09595', padding: '2px 8px', borderRadius: 4, fontSize: 10, fontWeight: 700, textTransform: 'uppercase' }}>
               {resultPanel.grna.risk} off-target risk
             </span>
+          )}
+
+          {/* outcome simulation result */}
+          {outcomePanel && (
+            <div style={{ marginTop: 12, borderTop: '1px solid rgba(0,255,136,0.15)', paddingTop: 10, animation: 'slideUp 0.3s' }}>
+              <div style={{ fontSize: 11, color: '#1a4a2a', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                Repair Prediction
+              </div>
+              <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginBottom: 6 }}>
+                <div>
+                  <div style={{
+                    fontFamily: 'monospace', fontWeight: 700, fontSize: 18,
+                    color: outcomePanel.fsPercent > 50 ? '#ff2244' : outcomePanel.fsPercent > 30 ? '#ffaa00' : '#00ff88',
+                  }}>
+                    {outcomePanel.fsPercent.toFixed(0)}%
+                  </div>
+                  <div style={{ fontSize: 9, color: '#1a4a2a', textTransform: 'uppercase', letterSpacing: 1 }}>Frameshift</div>
+                </div>
+                <div>
+                  <div style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 18, color: '#ffaa00' }}>
+                    {outcomePanel.mostLikelySize > 0 ? `+${outcomePanel.mostLikelySize}` : `${outcomePanel.mostLikelySize}`}bp
+                  </div>
+                  <div style={{ fontSize: 9, color: '#1a4a2a', textTransform: 'uppercase', letterSpacing: 1 }}>Top indel</div>
+                </div>
+              </div>
+              <div style={{ fontSize: 11, color: '#4a8a5a', marginBottom: 6 }}>
+                This cut has a{' '}
+                <span style={{ color: outcomePanel.fsPercent > 50 ? '#ff2244' : '#ffaa00', fontWeight: 700 }}>
+                  {outcomePanel.fsPercent.toFixed(0)}%
+                </span>{' '}
+                chance of disrupting the reading frame
+              </div>
+              {outcomePanel.bonusXp > 0 && (
+                <div style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 13, color: '#00ff88', animation: 'slideUp 0.4s' }}>
+                  +{outcomePanel.bonusXp} XP{' '}
+                  <span style={{ fontSize: 10 }}>
+                    {outcomePanel.fsPercent > 80 ? '🧬 FRAMESHIFT MASTER' : '✓ GOOD DISRUPTION'}
+                  </span>
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
