@@ -43,9 +43,9 @@ def _gc(guide: str) -> float:
 
 
 def _risk(score: float) -> str:
-    if score >= 0.85:
+    if score >= 0.75:
         return "low"
-    if score >= 0.70:
+    if score >= 0.55:
         return "med"
     return "high"
 

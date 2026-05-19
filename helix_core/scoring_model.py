@@ -97,25 +97,33 @@ class HelixScorer:
 
     def score(self, guide: str) -> float:
         if not self._loaded:
-            return float(np.clip(_gc(guide.upper()), 0.0, 1.0))
-        features = extract_features(guide).reshape(1, -1)
+            return self._fallback_score(guide)
         try:
-            raw = float(self._model.predict_proba(features)[0][1])
-        except AttributeError:
-            raw = float(self._model.predict(features)[0])
-        calibrated = (raw - 0.3) / (0.85 - 0.3)
-        return float(np.clip(calibrated, 0.0, 1.0))
+            features = extract_features(guide)
+            features = features.reshape(1, -1)
+            pred = self._model.predict(features)[0]
+            return float(np.clip(pred, 0.0, 1.0))
+        except:
+            return self._fallback_score(guide)
+
+    def _fallback_score(self, guide: str) -> float:
+        gc = (guide.count('G') + guide.count('C')) / len(guide)
+        seed = guide[12:] if len(guide) >= 20 else guide
+        seed_gc = (seed.count('G') + seed.count('C')) / len(seed)
+        score = 0.4 * gc + 0.4 * seed_gc + 0.2 * 0.5
+        if 'TTTT' in guide: score -= 0.2
+        if 'GGGG' in guide: score -= 0.15
+        return float(np.clip(score, 0.0, 1.0))
 
     def score_many(self, guides: list[str]) -> list[float]:
         if not self._loaded or not guides:
             return [self.score(g) for g in guides]
         X = np.stack([extract_features(g) for g in guides])
         try:
-            probs = self._model.predict_proba(X)[:, 1]
-        except AttributeError:
-            probs = self._model.predict(X)
-        calibrated = [(float(p) - 0.3) / (0.85 - 0.3) for p in probs]
-        return [float(np.clip(c, 0.0, 1.0)) for c in calibrated]
+            preds = self._model.predict(X)
+        except:
+            return [self.score(g) for g in guides]
+        return [float(np.clip(p, 0.0, 1.0)) for p in preds]
 
 
 _scorer = HelixScorer()

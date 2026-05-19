@@ -10,6 +10,7 @@ export function HelixProvider({ children }) {
   const [proteinSequence, setProteinSequence] = useState('')
   const [selectedOrf,     setSelectedOrf]     = useState(null)
   const [selectedGuide,   setSelectedGuide]   = useState(null)
+  const [analysisResults, setAnalysisResults] = useState(null)
 
   function update(patch) {
     if ('sequence' in patch) {
@@ -23,10 +24,11 @@ export function HelixProvider({ children }) {
     if ('proteinSequence' in patch) setProteinSequence(patch.proteinSequence)
     if ('selectedOrf'     in patch) setSelectedOrf(patch.selectedOrf)
     if ('selectedGuide'   in patch) setSelectedGuide(patch.selectedGuide)
+    if ('analysisResults' in patch) setAnalysisResults(patch.analysisResults)
   }
 
   return (
-    <HelixCtx.Provider value={{ sequence, enzyme, grnas, topGuide, proteinSequence, selectedOrf, selectedGuide, update }}>
+    <HelixCtx.Provider value={{ sequence, enzyme, grnas, topGuide, proteinSequence, selectedOrf, selectedGuide, analysisResults, update }}>
       {children}
     </HelixCtx.Provider>
   )

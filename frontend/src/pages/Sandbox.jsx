@@ -39,8 +39,8 @@ const T = {
 // ─── small helpers ────────────────────────────────────────────────────────────
 
 function scoreColor(score) {
-  if (score >= 0.85) return '#00ff88'
-  if (score >= 0.70) return '#ffaa00'
+  if (score >= 0.75) return '#00ff88'
+  if (score >= 0.55) return '#ffaa00'
   return '#ff2244'
 }
 
@@ -457,10 +457,9 @@ function TracksPanel({ result, seqLen, grnas, onZoom }) {
 // ─── main page ────────────────────────────────────────────────────────────────
 
 export default function Sandbox() {
-  const { sequence, enzyme, topGuide, update: storeUpdate } = useHelixStore()
+  const { sequence, enzyme, topGuide, analysisResults, update: storeUpdate } = useHelixStore()
   const [loading, setLoading]         = useState(false)
   const [error, setError]             = useState(null)
-  const [result, setResult]           = useState(null)
   const [activeTab, setActiveTab]     = useState('gRNA Ranking')
   const [windowStart, setWindowStart] = useState(null)
   const [windowEnd, setWindowEnd]     = useState(null)
@@ -484,8 +483,7 @@ export default function Sandbox() {
     setWindowEnd(null)
     try {
       const data = await analyzeGrnas(sequence.trim(), enzyme, false)
-      setResult(data)
-      storeUpdate({ grnas: data.grnas ?? [], topGuide: data.grnas?.[0] ?? null })
+      storeUpdate({ analysisResults: data, grnas: data.grnas ?? [], topGuide: data.grnas?.[0] ?? null })
     } catch (err) {
       setError(err?.response?.data?.detail ?? err.message ?? 'Analysis failed')
     } finally {
@@ -540,8 +538,8 @@ export default function Sandbox() {
     }
   }
 
-  const grnas      = result?.grnas     ?? []
-  const pamCount   = result?.pam_count ?? 0
+  const grnas      = analysisResults?.grnas     ?? []
+  const pamCount   = analysisResults?.pam_count ?? 0
   const seqLen     = sequence.replace(/[^ACGTacgt]/g, '').length
   const offTargets = 0
 
@@ -742,7 +740,7 @@ export default function Sandbox() {
               <GrnaTable
                 grnas={visibleGrnas}
                 loading={loading}
-                emptyMessage={result ? 'No guides in this window' : 'Run an analysis to see gRNA rankings'}
+                emptyMessage={analysisResults ? 'No guides in this window' : 'Run an analysis to see gRNA rankings'}
                 onView3D={handleView3D}
                 onOffTarget={handleOffTarget}
                 onPrimers={handlePrimers}
@@ -774,7 +772,7 @@ export default function Sandbox() {
           )}
 
           {activeTab === '2D Tracks' && (
-            <TracksPanel result={result} seqLen={seqLen} grnas={grnas} onZoom={handleZoom} />
+            <TracksPanel result={analysisResults} seqLen={seqLen} grnas={grnas} onZoom={handleZoom} />
           )}
 
           {activeTab === '3D Helix' && (

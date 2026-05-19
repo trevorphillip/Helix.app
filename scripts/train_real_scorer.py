@@ -85,6 +85,12 @@ best_model = best['model']
 best_r2 = best['r2']
 best_pearson = best['pearson']
 print(f"\nBest model: {best_name} (R²={best_r2:.4f})")
+y_pred_all = best_model.predict(X)
+print(f"Prediction range: {y_pred_all.min():.3f} to {y_pred_all.max():.3f}")
+print(f"Prediction mean: {y_pred_all.mean():.3f}")
+print(f"Prediction std: {y_pred_all.std():.3f}")
+if y_pred_all.std() < 0.1:
+    print("WARNING: model not learning variance")
 
 # === FEATURE IMPORTANCE ===
 pos_feature_names = [f'pos{i//4}_{"ACGT"[i%4]}' for i in range(80)]

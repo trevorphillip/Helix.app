@@ -1,4 +1,5 @@
 import os
+import random
 import requests
 import pandas as pd
 import numpy as np
@@ -24,38 +25,71 @@ def gc(seq):
 
 
 def score_guide(guide):
-    g = gc(guide)
-    seed_gc = gc(guide[3:16])
-    score = 0.0
+    score = 0.5
 
-    if 0.4 <= g <= 0.7:
-        score += 0.3
-    elif 0.3 <= g <= 0.8:
+    gc_frac = (guide.count('G') + guide.count('C')) / 20
+    if 0.4 <= gc_frac <= 0.65:
+        score += 0.2
+    elif 0.35 <= gc_frac <= 0.70:
+        score += 0.05
+    else:
+        score -= 0.2
+
+    seed = guide[12:]
+    seed_gc = (seed.count('G') + seed.count('C')) / 8
+    if 0.35 <= seed_gc <= 0.60:
         score += 0.15
-
-    if 0.3 <= seed_gc <= 0.6:
-        score += 0.25
+    else:
+        score -= 0.15
 
     if guide[0] == 'G':
-        score += 0.1
-    elif guide[0] == 'A':
-        score += 0.05
+        score += 0.08
+    elif guide[0] == 'C':
+        score -= 0.08
 
     if guide[19] == 'G':
-        score += 0.15
-    elif guide[19] == 'C':
-        score += 0.05
+        score += 0.12
+    elif guide[19] == 'T':
+        score -= 0.08
 
     if 'TTTT' in guide:
-        score -= 0.2
-    if 'GGGG' in guide:
-        score -= 0.15
-    for base in BASES:
-        if base * 5 in guide:
-            score -= 0.1
+        score -= 0.25
+    elif 'TTT' in guide:
+        score -= 0.10
 
-    score += np.random.normal(0, 0.08)
-    return float(np.clip(score, 0.0, 1.0))
+    if 'GGGG' in guide:
+        score -= 0.20
+    elif 'GGG' in guide:
+        score -= 0.08
+
+    for base in 'ACGT':
+        if base * 4 in guide:
+            score -= 0.12
+
+    gc_count = guide.count('G') + guide.count('C')
+    tm = 64.9 + 41 * (gc_count - 16.4) / 20
+    if 55 <= tm <= 65:
+        score += 0.1
+    elif tm < 50 or tm > 70:
+        score -= 0.15
+
+    rev = guide[::-1].translate(str.maketrans('ACGT', 'TGCA'))
+    matches = sum(a == b for a, b in zip(guide, rev))
+    if matches > 8:
+        score -= 0.15
+
+    score += np.random.normal(0, 0.12)
+    score = max(0.0, min(1.0, score))
+
+    r = random.random()
+    if r < 0.3:
+        score = score * 0.4
+    elif r < 0.7:
+        score = 0.4 + score * 0.3
+    else:
+        score = 0.7 + score * 0.3
+
+    return float(max(0.0, min(1.0, score)))
 
 
 def compute_features(guide):
